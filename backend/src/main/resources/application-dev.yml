@@ -1,0 +1,21 @@
+# 개발 환경 설정
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/sungkyul_cafeteria
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update       # 개발 중 스키마 자동 갱신
+    show-sql: true           # 실행 쿼리 콘솔 출력
+    properties:
+      hibernate:
+        format_sql: true     # SQL 가독성 향상
+
+logging:
+  level:
+    root: DEBUG
+    com.sungkyul.cafeteria: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql: TRACE

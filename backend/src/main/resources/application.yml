@@ -1,0 +1,11 @@
+# 공통 설정 (모든 프로파일에 적용)
+spring:
+  application:
+    name: sku-cafeteria-review
+  profiles:
+    active: dev   # 배포 시 환경변수 SPRING_PROFILES_ACTIVE=prod 로 오버라이드
+
+server:
+  port: 8080
+
+# 프로파일별 세부 설정은 application-dev.yml / application-prod.yml 참고
