@@ -52,3 +52,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 새로운 세션을 시작할 때는 반드시 아래 명령을 실행할 것:
 
 @docs/skills/project-review.md 를 읽고 순서대로 실행해줘.
+
+## 프론트엔드 개발 방식
+
+- 기능 단위: FE-1-1처럼 최소 단위로 쪼개서 구현
+- 한 번에 하나의 기능만 구현
+- 구현 완료 후 docs/frontend-progress.md 체크박스 업데이트
+- 검증: 브라우저에서 눈으로 확인

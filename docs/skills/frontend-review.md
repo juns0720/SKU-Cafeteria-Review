@@ -6,7 +6,7 @@
 
 ### Step 1. docs/frontend-progress.md 읽기
 
-- 완료된 단계 확인
+- 완료된 단계 확인 (FE-1-1 ~ FE-6-3)
 - 다음 작업 확인
 - 현재 이슈 확인
 

@@ -6,32 +6,42 @@
 
 ## 다음 작업
 
-- [ ] FE-1: Vite 프로젝트 생성 + 패키지 설치 + TailwindCSS 설정
+- [ ] FE-1-1: Vite 프로젝트 생성 + TailwindCSS 설정
 
 ## 전체 단계 목록
 
-- [ ] FE-1: Vite 프로젝트 생성 + 패키지 설치 + TailwindCSS 설정
-- [ ] FE-2: 환경변수 설정 (.env.local)
-- [ ] FE-3: Axios 인스턴스 작성 (api/client.js)
-- [ ] FE-4: API 함수 전체 작성 (api/auth.js, menus.js, reviews.js)
-- [ ] FE-5: React Query 설정 (QueryClient)
-- [ ] FE-6: useAuth 훅 구현
-- [ ] FE-7: React Router 설정 + 기본 레이아웃 + BottomNav
-- [ ] FE-8: Google 로그인 구현
-- [ ] FE-9: StarDisplay 컴포넌트
-- [ ] FE-10: SkeletonCard 컴포넌트
-- [ ] FE-11: Toast + useToast 훅
-- [ ] FE-12: 홈 화면 + MenuCard (Mock 데이터)
-- [ ] FE-13: 주간 학식표 + WeekTab (Mock 데이터)
-- [ ] FE-14: 전체 리뷰 페이지 (Mock 데이터)
-- [ ] FE-15: 메뉴 상세 모달 + ReviewItem
-- [ ] FE-16: StarRating 컴포넌트 (입력용)
-- [ ] FE-17: 리뷰 작성 폼
-- [ ] FE-18: 리뷰 수정/삭제
-- [ ] FE-19: 내 리뷰 페이지
-- [ ] FE-20: 백엔드 API 연동 (Mock → 실제)
-- [ ] FE-21: 반응형 점검
-- [ ] FE-22: 에러/빈 상태 UI 점검
+[인프라]
+- [ ] FE-1-1: Vite 프로젝트 생성 + TailwindCSS 설정
+- [ ] FE-1-2: Axios 인스턴스 (api/client.js)
+- [ ] FE-1-3: React Query + React Router 설정
+- [ ] FE-1-4: Header 컴포넌트
+- [ ] FE-1-5: BottomNav 컴포넌트
+
+[공통 컴포넌트]
+- [ ] FE-2-1: StarDisplay (별점 표시용)
+- [ ] FE-2-2: SkeletonCard (로딩 shimmer)
+- [ ] FE-2-3: Toast + useToast 훅
+
+[인증]
+- [ ] FE-3-1: useAuth 훅
+- [ ] FE-3-2: Google 로그인 버튼
+
+[페이지 - Mock 데이터]
+- [ ] FE-4-1: HomePage + MenuCard (Mock)
+- [ ] FE-4-2: WeeklyPage + WeekTab (Mock)
+- [ ] FE-4-3: ReviewsPage (Mock)
+- [ ] FE-4-4: 메뉴 상세 모달 + ReviewItem
+
+[리뷰 기능]
+- [ ] FE-5-1: StarRating (입력용)
+- [ ] FE-5-2: 리뷰 작성 폼
+- [ ] FE-5-3: 리뷰 수정/삭제
+- [ ] FE-5-4: 내 리뷰 페이지
+
+[마무리]
+- [ ] FE-6-1: 백엔드 API 연동 (Mock → 실제)
+- [ ] FE-6-2: 반응형 점검
+- [ ] FE-6-3: 에러/빈 상태 UI
 
 ## 현재 이슈
 
