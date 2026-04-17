@@ -10,7 +10,7 @@
 
 ## 다음 작업
 
-- [ ] FE-3-1: useAuth 훅
+- [ ] FE-4-1: HomePage + MenuCard (Mock)
 
 ## 전체 단계 목록
 
@@ -27,8 +27,8 @@
 - [x] FE-2-3: Toast + useToast 훅
 
 [인증]
-- [ ] FE-3-1: useAuth 훅
-- [ ] FE-3-2: Google 로그인 버튼
+- [x] FE-3-1: useAuth 훅
+- [x] FE-3-2: Google 로그인 버튼
 
 [페이지 - Mock 데이터]
 - [ ] FE-4-1: HomePage + MenuCard (Mock)
