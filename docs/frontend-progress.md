@@ -10,7 +10,7 @@
 
 ## 다음 작업
 
-- [ ] FE-4-4: 메뉴 상세 모달 + ReviewItem
+- [ ] FE-4-5: HomePage·ReviewsPage 모달 미작동 버그 수정
 
 ## 전체 단계 목록
 
@@ -34,7 +34,8 @@
 - [x] FE-4-1: HomePage + MenuCard (Mock)
 - [x] FE-4-2: WeeklyPage + WeekTab (Mock)
 - [x] FE-4-3: ReviewsPage (Mock)
-- [ ] FE-4-4: 메뉴 상세 모달 + ReviewItem
+- [x] FE-4-4: 메뉴 상세 모달 + ReviewItem
+- [ ] FE-4-5: HomePage·ReviewsPage 모달 미작동 버그 수정
 
 [리뷰 기능]
 - [ ] FE-5-1: StarRating (입력용)
@@ -49,4 +50,4 @@
 
 ## 현재 이슈
 
-없음
+- [ ] FE-4-5: HomePage·ReviewsPage에서 MenuCard 클릭 시 모달 미작동 (WeeklyPage는 정상)

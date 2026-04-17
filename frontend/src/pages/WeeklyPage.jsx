@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import WeekTab, { todayKey } from '../components/WeekTab'
 import MenuCard from '../components/MenuCard'
+import MenuDetailModal from '../components/MenuDetailModal'
 
 const MOCK_WEEKLY = {
   MON: [
@@ -29,7 +30,13 @@ const MOCK_WEEKLY = {
 
 export default function WeeklyPage() {
   const [selectedDay, setSelectedDay] = useState(todayKey())
+  const [selectedMenu, setSelectedMenu] = useState(null)
   const menus = MOCK_WEEKLY[selectedDay] ?? []
+
+  const allMenus = Object.values(MOCK_WEEKLY).flat()
+  const handleCardClick = (menuId) => {
+    setSelectedMenu(allMenus.find((m) => m.menuId === menuId) ?? null)
+  }
 
   return (
     <div className="animate-fadeInUp">
@@ -43,13 +50,19 @@ export default function WeeklyPage() {
         {menus.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {menus.map((menu) => (
-              <MenuCard key={menu.menuId} {...menu} />
+              <MenuCard key={menu.menuId} {...menu} onClick={handleCardClick} />
             ))}
           </div>
         ) : (
           <p className="text-center text-gray-400 text-sm py-16">등록된 메뉴가 없습니다</p>
         )}
       </div>
+
+      <MenuDetailModal
+        menu={selectedMenu}
+        isLoggedIn={false}
+        onClose={() => setSelectedMenu(null)}
+      />
     </div>
   )
 }

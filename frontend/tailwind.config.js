@@ -10,6 +10,7 @@ export default {
         shimmer: 'shimmer 1.5s infinite linear',
         fadeIn: 'fadeIn 0.2s ease forwards',
         fadeInUp: 'fadeInUp 0.3s ease forwards',
+        slideUp: 'slideUp 0.25s ease forwards',
       },
       backgroundSize: {
         '200': '200% 100%',

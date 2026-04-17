@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { Search } from 'lucide-react'
 import MenuCard from '../components/MenuCard'
+import MenuDetailModal from '../components/MenuDetailModal'
 
 const MOCK_ALL = [
   { menuId: 1,  name: '제육볶음',   corner: 'A코너', averageRating: 4.2, reviewCount: 12, servedDate: '2025-04-14' },
@@ -32,6 +33,7 @@ function sortMenus(menus, sort) {
 export default function ReviewsPage() {
   const [sort, setSort] = useState('date')
   const [query, setQuery] = useState('')
+  const [selectedMenu, setSelectedMenu] = useState(null)
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -78,12 +80,22 @@ export default function ReviewsPage() {
       {filtered.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {filtered.map((menu) => (
-            <MenuCard key={menu.menuId} {...menu} />
+            <MenuCard
+              key={menu.menuId}
+              {...menu}
+              onClick={(id) => setSelectedMenu(MOCK_ALL.find((m) => m.menuId === id) ?? null)}
+            />
           ))}
         </div>
       ) : (
         <p className="text-center text-gray-400 text-sm py-16">검색 결과가 없습니다</p>
       )}
+
+      <MenuDetailModal
+        menu={selectedMenu}
+        isLoggedIn={false}
+        onClose={() => setSelectedMenu(null)}
+      />
     </div>
   )
 }

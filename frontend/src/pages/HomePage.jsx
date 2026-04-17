@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import MenuCard from '../components/MenuCard'
+import MenuDetailModal from '../components/MenuDetailModal'
 
 const MOCK_TODAY = [
   { menuId: 1, name: '제육볶음', corner: 'A코너', averageRating: 4.2, reviewCount: 12 },
@@ -15,14 +17,25 @@ function getTodayLabel() {
 }
 
 export default function HomePage() {
+  const [selectedMenu, setSelectedMenu] = useState(null)
+
+  const handleCardClick = (menuId) => {
+    setSelectedMenu(MOCK_TODAY.find((m) => m.menuId === menuId) ?? null)
+  }
+
   return (
     <div className="p-4 animate-fadeInUp">
       <h2 className="text-lg font-bold text-gray-900 mb-4">{getTodayLabel()}</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         {MOCK_TODAY.map((menu) => (
-          <MenuCard key={menu.menuId} {...menu} />
+          <MenuCard key={menu.menuId} {...menu} onClick={handleCardClick} />
         ))}
       </div>
+      <MenuDetailModal
+        menu={selectedMenu}
+        isLoggedIn={false}
+        onClose={() => setSelectedMenu(null)}
+      />
     </div>
   )
 }
