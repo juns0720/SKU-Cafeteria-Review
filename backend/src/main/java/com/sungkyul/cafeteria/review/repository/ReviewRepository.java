@@ -14,7 +14,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     Page<Review> findByMenuId(Long menuId, Pageable pageable);
 
     /** 특정 사용자가 작성한 전체 리뷰 목록 (마이페이지) */
-    List<Review> findByUserId(Long userId);
+    List<Review> findByUserIdOrderByCreatedAtDesc(Long userId);
 
     /** 사용자 + 메뉴 조합으로 단건 조회 (수정/삭제 시 소유권 확인) */
     Optional<Review> findByUserIdAndMenuId(Long userId, Long menuId);

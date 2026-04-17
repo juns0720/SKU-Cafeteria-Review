@@ -1,6 +1,7 @@
 package com.sungkyul.cafeteria.review.controller;
 
 import com.sungkyul.cafeteria.review.dto.ReviewRequest;
+import java.util.List;
 import com.sungkyul.cafeteria.review.dto.ReviewResponse;
 import com.sungkyul.cafeteria.review.dto.ReviewUpdateRequest;
 import com.sungkyul.cafeteria.review.service.ReviewService;
@@ -31,6 +32,12 @@ public class ReviewController {
                 ? (Long) authentication.getPrincipal()
                 : null;
         return ResponseEntity.ok(reviewService.getReviews(menuId, page, size, currentUserId));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<List<ReviewResponse>> getMyReviews(Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        return ResponseEntity.ok(reviewService.getMyReviews(userId));
     }
 
     @DeleteMapping("/{reviewId}")

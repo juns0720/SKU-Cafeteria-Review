@@ -3,6 +3,7 @@ package com.sungkyul.cafeteria.review.service;
 import com.sungkyul.cafeteria.menu.entity.Menu;
 import com.sungkyul.cafeteria.menu.repository.MenuRepository;
 import com.sungkyul.cafeteria.review.dto.ReviewRequest;
+import java.util.List;
 import com.sungkyul.cafeteria.review.dto.ReviewResponse;
 import com.sungkyul.cafeteria.review.dto.ReviewUpdateRequest;
 import com.sungkyul.cafeteria.review.entity.Review;
@@ -53,6 +54,13 @@ public class ReviewService {
 
         Review saved = reviewRepository.save(review);
         return toResponse(saved, userId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ReviewResponse> getMyReviews(Long userId) {
+        return reviewRepository.findByUserIdOrderByCreatedAtDesc(userId).stream()
+                .map(review -> toResponse(review, userId))
+                .toList();
     }
 
     @Transactional
