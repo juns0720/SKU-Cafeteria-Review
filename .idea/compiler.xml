@@ -10,8 +10,5 @@
         <module name="sku-cafeteria-review.main" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="sku-cafeteria-review" target="17" />
-    </bytecodeTargetLevel>
   </component>
 </project>
