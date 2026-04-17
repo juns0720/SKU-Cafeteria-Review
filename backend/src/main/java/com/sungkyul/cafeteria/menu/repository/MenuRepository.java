@@ -27,4 +27,8 @@ public interface MenuRepository extends JpaRepository<Menu, Long> {
     /** 특정 메뉴의 리뷰 수 */
     @Query("SELECT COUNT(r) FROM Review r WHERE r.menu.id = :menuId")
     Long countReviewsByMenuId(@Param("menuId") Long menuId);
+
+    /** 리뷰가 1개 이상 있는 메뉴 전체 조회 */
+    @Query("SELECT m FROM Menu m WHERE (SELECT COUNT(r) FROM Review r WHERE r.menu = m) > 0")
+    List<Menu> findMenusWithReviews();
 }

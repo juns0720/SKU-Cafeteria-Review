@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/menus")
@@ -21,6 +22,13 @@ import java.time.LocalDate;
 public class MenuController {
 
     private final MenuService menuService;
+
+    @GetMapping
+    public ResponseEntity<List<MenuResponse>> getMenus(
+            @RequestParam(required = false) String sort
+    ) {
+        return ResponseEntity.ok(menuService.getMenus(sort));
+    }
 
     @GetMapping("/today")
     public ResponseEntity<TodayMenuResponse> getToday() {

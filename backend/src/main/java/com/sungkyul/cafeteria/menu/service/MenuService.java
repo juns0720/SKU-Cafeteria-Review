@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +23,31 @@ import java.util.Map;
 public class MenuService {
 
     private final MenuRepository menuRepository;
+
+    @Transactional(readOnly = true)
+    public List<MenuResponse> getMenus(String sort) {
+        List<MenuResponse> responses = menuRepository.findMenusWithReviews().stream()
+                .map(menu -> new MenuResponse(
+                        menu.getId(),
+                        menu.getName(),
+                        menu.getCorner(),
+                        menu.getServedDate(),
+                        menuRepository.findAverageRatingByMenuId(menu.getId()),
+                        menuRepository.countReviewsByMenuId(menu.getId())
+                ))
+                .collect(java.util.stream.Collectors.toCollection(ArrayList::new));
+
+        Comparator<MenuResponse> comparator = switch (sort != null ? sort : "") {
+            case "rating"       -> Comparator.comparingDouble(
+                                        (MenuResponse r) -> r.averageRating() != null ? r.averageRating() : 0.0
+                                   ).reversed();
+            case "reviewCount"  -> Comparator.comparingLong(MenuResponse::reviewCount).reversed();
+            default             -> Comparator.comparing(MenuResponse::servedDate).reversed();
+        };
+
+        responses.sort(comparator);
+        return responses;
+    }
 
     @Transactional(readOnly = true)
     public TodayMenuResponse getTodayMenus() {
