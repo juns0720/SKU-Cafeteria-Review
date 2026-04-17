@@ -10,7 +10,7 @@
 
 ## 다음 작업
 
-- [ ] FE-2-3: Toast + useToast 훅
+- [ ] FE-3-1: useAuth 훅
 
 ## 전체 단계 목록
 
@@ -24,7 +24,7 @@
 [공통 컴포넌트]
 - [x] FE-2-1: StarDisplay (별점 표시용)
 - [x] FE-2-2: SkeletonCard (로딩 shimmer)
-- [ ] FE-2-3: Toast + useToast 훅
+- [x] FE-2-3: Toast + useToast 훅
 
 [인증]
 - [ ] FE-3-1: useAuth 훅

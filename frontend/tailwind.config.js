@@ -8,6 +8,7 @@ export default {
     extend: {
       animation: {
         shimmer: 'shimmer 1.5s infinite linear',
+        fadeIn: 'fadeIn 0.2s ease forwards',
       },
       backgroundSize: {
         '200': '200% 100%',
