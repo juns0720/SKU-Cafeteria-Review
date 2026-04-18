@@ -19,7 +19,7 @@
 - [x] **BE-A-0**: `menus` 2-테이블 정규화 (`menus(name,corner)` + `menu_dates`) + V2 migration
 
 **customNickname**
-- [ ] **BE-A-2a**: `customNickname` 컬럼 (nullable) + V3 migration
+- [x] **BE-A-2a**: `customNickname` 컬럼 (nullable) + V3 migration
 - [ ] **BE-A-2b**: `PATCH /auth/me/nickname` + 중복 시 409
 - [ ] **BE-A-2c**: `GET /auth/me` `displayName` 필드 (`customNickname ?? nickname`)
 

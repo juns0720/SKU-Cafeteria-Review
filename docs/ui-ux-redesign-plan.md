@@ -32,7 +32,7 @@
   - 검증: `bootRun` → Flyway 로그 V2 적용 확인
 
 **customNickname**
-- [ ] **BE-A-2a**: `customNickname` 컬럼 추가 (nullable) + V3 migration
+- [x] **BE-A-2a**: `customNickname` 컬럼 추가 (nullable) + V3 migration
   - 검증: `bootRun` → Flyway V3 적용 확인
 - [ ] **BE-A-2b**: `PATCH /auth/me/nickname` 엔드포인트 + 중복 시 409 핸들링
   - 검증: Postman PATCH 성공 / 중복값 → 409 응답 확인
