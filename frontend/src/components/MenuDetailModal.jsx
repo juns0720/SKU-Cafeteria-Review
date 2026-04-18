@@ -147,7 +147,7 @@ export default function MenuDetailModal({ menu, isLoggedIn, onClose }) {
           <h4 className="text-sm font-bold text-gray-700 mb-1">리뷰 {MOCK_REVIEWS.length}개</h4>
           <div>
             {MOCK_REVIEWS.map((review) => (
-              <ReviewItem key={review.reviewId} {...review} />
+              <ReviewItem key={review.reviewId} {...review} menuId={menu.menuId} />
             ))}
           </div>
         </div>
