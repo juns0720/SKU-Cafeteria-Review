@@ -32,13 +32,11 @@ npm run lint     # ESLint 검사
 
 ## Docs
 
+- @docs/plans/README.md — **활성 플랜 + 진행 상황 허브** (현재는 UI/UX 개편)
 - @docs/architecture.md — 패키지 구조, Auth Flow, Security 규칙, Crawler, Configuration
 - @docs/api.md — 전체 API 엔드포인트, 에러 응답 형식, Exception → HTTP Status 매핑
 - @docs/conventions.md — 레이어 구조, 도메인 규칙, 엔티티 수정 패턴, 응답 코드 규칙
-- @docs/progress.md — 백엔드 구현 진행 체크리스트, Known Issues / TODO
-- @docs/ui-ux-redesign-plan.md — **현재 진행 중인 UI/UX 개편 계획 (Phase A~D 단위 체크리스트)**
-- @docs/frontend-progress.md — FE 진행 체크리스트, 현재 이슈
-- @docs/FRONTEND_PLAN.md — (아카이브) v1 FE 구현 계획, 디자인 시스템 참조용
+- @docs/DESIGN.md — 프론트 디자인 시스템 (컬러·타이포·애니메이션)
 
 ## /init 규칙
 
@@ -51,7 +49,7 @@ npm run lint     # ESLint 검사
 2. 변경 사항 반영 위치
     - 새 패키지/클래스 추가 → docs/architecture.md 업데이트
     - 새 API 추가 → docs/api.md 업데이트
-    - STEP 완료 → docs/progress.md 체크리스트 업데이트
+    - 플랜 단위 완료 → docs/plans/<feature>/99-progress.md 체크리스트 업데이트
     - 새 규칙/컨벤션 → docs/conventions.md 업데이트
 
 3. CLAUDE.md에 직접 추가하지 말 것
@@ -66,7 +64,7 @@ npm run lint     # ESLint 검사
 
 ## 프론트엔드 개발 방식
 
-- 기능 단위: FE-4-1처럼 최소 단위로 쪼개서 구현, 한 번에 하나만
-- 구현 완료 후 `docs/frontend-progress.md` 체크박스 업데이트
+- 기능 단위: FE-B-1처럼 최소 단위로 쪼개서 구현, 한 번에 하나만
+- 구현 완료 후 `docs/plans/ui-ux-redesign/99-progress.md` 체크박스 업데이트
 - `position: fixed` UI(모달 등)는 `createPortal(…, document.body)` 사용 — transform 조상의 stacking context 우회
-- 검증: 브라우저에서 눈으로 확인
+- 검증: 브라우저에서 눈으로 확인 (375 / 768 / 1280 뷰포트)
