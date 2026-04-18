@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { Search } from 'lucide-react'
 import MenuCard from '../components/MenuCard'
 import MenuDetailModal from '../components/MenuDetailModal'
+import useAuth from '../hooks/useAuth'
 
 const MOCK_ALL = [
   { menuId: 1,  name: '제육볶음',   corner: 'A코너', averageRating: 4.2, reviewCount: 12, servedDate: '2025-04-14' },
@@ -34,6 +35,7 @@ export default function ReviewsPage() {
   const [sort, setSort] = useState('date')
   const [query, setQuery] = useState('')
   const [selectedMenu, setSelectedMenu] = useState(null)
+  const { isLoggedIn } = useAuth()
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -93,7 +95,7 @@ export default function ReviewsPage() {
 
       <MenuDetailModal
         menu={selectedMenu}
-        isLoggedIn={false}
+        isLoggedIn={isLoggedIn}
         onClose={() => setSelectedMenu(null)}
       />
     </div>

@@ -16,7 +16,8 @@
       "Bash(taskkill //F //PID 16004)",
       "Bash(awk '{print $5}')",
       "Bash(break)",
-      "Bash(taskkill //F //PID 32696)"
+      "Bash(taskkill //F //PID 32696)",
+      "Bash(xargs grep *)"
     ]
   }
 }

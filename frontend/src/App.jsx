@@ -10,6 +10,8 @@ import MyReviewsPage from './pages/MyReviewsPage'
 import useAuth from './hooks/useAuth'
 import useToast from './hooks/useToast.jsx'
 
+
+
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 1000 * 60 } },
 })

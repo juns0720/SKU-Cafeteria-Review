@@ -2,6 +2,7 @@ import { useState } from 'react'
 import WeekTab, { todayKey } from '../components/WeekTab'
 import MenuCard from '../components/MenuCard'
 import MenuDetailModal from '../components/MenuDetailModal'
+import useAuth from '../hooks/useAuth'
 
 const MOCK_WEEKLY = {
   MON: [
@@ -31,6 +32,7 @@ const MOCK_WEEKLY = {
 export default function WeeklyPage() {
   const [selectedDay, setSelectedDay] = useState(todayKey())
   const [selectedMenu, setSelectedMenu] = useState(null)
+  const { isLoggedIn } = useAuth()
   const menus = MOCK_WEEKLY[selectedDay] ?? []
 
   const allMenus = Object.values(MOCK_WEEKLY).flat()
@@ -60,7 +62,7 @@ export default function WeeklyPage() {
 
       <MenuDetailModal
         menu={selectedMenu}
-        isLoggedIn={false}
+        isLoggedIn={isLoggedIn}
         onClose={() => setSelectedMenu(null)}
       />
     </div>

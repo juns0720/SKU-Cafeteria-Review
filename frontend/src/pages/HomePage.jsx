@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import MenuCard from '../components/MenuCard'
 import MenuDetailModal from '../components/MenuDetailModal'
+import useAuth from '../hooks/useAuth'
 
 const MOCK_TODAY = [
   { menuId: 1, name: '제육볶음', corner: 'A코너', averageRating: 4.2, reviewCount: 12 },
@@ -18,6 +19,7 @@ function getTodayLabel() {
 
 export default function HomePage() {
   const [selectedMenu, setSelectedMenu] = useState(null)
+  const { isLoggedIn } = useAuth()
 
   const handleCardClick = (menuId) => {
     setSelectedMenu(MOCK_TODAY.find((m) => m.menuId === menuId) ?? null)
@@ -33,7 +35,7 @@ export default function HomePage() {
       </div>
       <MenuDetailModal
         menu={selectedMenu}
-        isLoggedIn={false}
+        isLoggedIn={isLoggedIn}
         onClose={() => setSelectedMenu(null)}
       />
     </div>
