@@ -49,6 +49,30 @@ public class Review {
     @Column(nullable = false)
     private int rating;
 
+    /** 3축 별점: 맛·양·가성비 (nullable — V6에서 NOT NULL 승격) */
+    @Min(1)
+    @Max(5)
+    @Column(name = "taste_rating")
+    private Integer tasteRating;
+
+    @Min(1)
+    @Max(5)
+    @Column(name = "amount_rating")
+    private Integer amountRating;
+
+    @Min(1)
+    @Max(5)
+    @Column(name = "value_rating")
+    private Integer valueRating;
+
+    /** 3축이 모두 non-null이면 평균, 아니면 기존 rating 반환 */
+    public double overallRating() {
+        if (tasteRating != null && amountRating != null && valueRating != null) {
+            return (tasteRating + amountRating + valueRating) / 3.0;
+        }
+        return rating;
+    }
+
     /** 코멘트 (최대 500자, 별점만 남길 경우 null 허용) */
     @Size(max = 500)
     @Column(length = 500)
