@@ -13,6 +13,7 @@ public record ReviewResponse(
         int value,
         double overall,
         String comment,
+        String imageUrl,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
         boolean isMine

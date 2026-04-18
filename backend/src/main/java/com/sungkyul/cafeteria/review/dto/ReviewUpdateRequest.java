@@ -9,5 +9,6 @@ public record ReviewUpdateRequest(
         @NotNull @Min(1) @Max(5) Integer tasteRating,
         @NotNull @Min(1) @Max(5) Integer amountRating,
         @NotNull @Min(1) @Max(5) Integer valueRating,
-        @Size(max = 500) String comment
+        @Size(max = 500) String comment,
+        @Size(max = 500) String imageUrl
 ) {}

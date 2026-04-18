@@ -39,7 +39,7 @@ class ReviewServiceTest {
         given(userRepository.getReferenceById(10L)).willReturn(user);
         given(reviewRepository.save(any())).willAnswer(inv -> inv.getArgument(0));
 
-        ReviewRequest request = new ReviewRequest(1L, 5, 4, 3, "맛있어요");
+        ReviewRequest request = new ReviewRequest(1L, 5, 4, 3, "맛있어요",  "https://example.com/photo.jpg");
         ReviewResponse response = reviewService.createReview(10L, request);
 
         assertThat(response.taste()).isEqualTo(5);
@@ -56,7 +56,7 @@ class ReviewServiceTest {
         given(menuRepository.findById(1L)).willReturn(Optional.of(menu));
         given(reviewRepository.existsByUserIdAndMenuId(10L, 1L)).willReturn(true);
 
-        ReviewRequest request = new ReviewRequest(1L, 5, 5, 5, null);
+        ReviewRequest request = new ReviewRequest(1L, 5, 5, 5, null, null);
         assertThatThrownBy(() -> reviewService.createReview(10L, request))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("이미 리뷰를 작성하셨습니다");

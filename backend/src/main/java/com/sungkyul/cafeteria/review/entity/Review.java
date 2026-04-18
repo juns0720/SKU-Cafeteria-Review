@@ -53,6 +53,10 @@ public class Review {
     private int valueRating;
 
     @Size(max = 500)
+    @Column(name = "image_url", length = 500)
+    private String imageUrl;
+
+    @Size(max = 500)
     @Column(length = 500)
     private String comment;
 
@@ -68,10 +72,11 @@ public class Review {
         return (tasteRating + amountRating + valueRating) / 3.0;
     }
 
-    public void update(int tasteRating, int amountRating, int valueRating, String comment) {
+    public void update(int tasteRating, int amountRating, int valueRating, String comment, String imageUrl) {
         this.tasteRating = tasteRating;
         this.amountRating = amountRating;
         this.valueRating = valueRating;
         this.comment = comment;
+        this.imageUrl = imageUrl;
     }
 }

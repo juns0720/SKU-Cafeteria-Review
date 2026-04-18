@@ -37,7 +37,7 @@
 **Review 3축 별점 + imageUrl**
 - [x] **BE-A-3a**: V5 `add_review_triple_ratings` (nullable + CHECK)
 - [x] **BE-A-3b**: V6 `backfill_and_drop_rating` (3축 NOT NULL + `rating` DROP)
-- [ ] **BE-A-3c**: V7 `add_review_image_url`
+- [x] **BE-A-3c**: V7 `add_review_image_url`
 - [ ] **BE-A-3d**: ReviewRequest/Response 3축 validation 최종
 
 **Menu API 확장 + N+1 해결**
