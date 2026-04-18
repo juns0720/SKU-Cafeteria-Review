@@ -35,8 +35,8 @@
 - [x] **BE-A-2c**: `GET /auth/me` + `LoginResponse.isNicknameSet`
 
 **Review 3축 별점 + imageUrl**
-- [ ] **BE-A-3a**: V5 `add_review_triple_ratings` (nullable + CHECK)
-- [ ] **BE-A-3b**: V6 `backfill_and_drop_rating` (3축 NOT NULL + `rating` DROP)
+- [x] **BE-A-3a**: V5 `add_review_triple_ratings` (nullable + CHECK)
+- [x] **BE-A-3b**: V6 `backfill_and_drop_rating` (3축 NOT NULL + `rating` DROP)
 - [ ] **BE-A-3c**: V7 `add_review_image_url`
 - [ ] **BE-A-3d**: ReviewRequest/Response 3축 validation 최종
 

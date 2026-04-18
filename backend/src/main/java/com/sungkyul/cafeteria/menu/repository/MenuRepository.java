@@ -14,7 +14,7 @@ public interface MenuRepository extends JpaRepository<Menu, Long> {
     Optional<Menu> findByNameAndCorner(String name, String corner);
 
     /** 특정 메뉴의 평균 별점 (리뷰가 없으면 null) */
-    @Query("SELECT AVG(r.rating) FROM Review r WHERE r.menu.id = :menuId")
+    @Query("SELECT AVG((r.tasteRating + r.amountRating + r.valueRating) / 3.0) FROM Review r WHERE r.menu.id = :menuId")
     Double findAverageRatingByMenuId(@Param("menuId") Long menuId);
 
     /** 특정 메뉴의 리뷰 수 */

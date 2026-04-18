@@ -7,6 +7,8 @@ import jakarta.validation.constraints.Size;
 
 public record ReviewRequest(
         @NotNull Long menuId,
-        @Min(1) @Max(5) int rating,
+        @NotNull @Min(1) @Max(5) Integer tasteRating,
+        @NotNull @Min(1) @Max(5) Integer amountRating,
+        @NotNull @Min(1) @Max(5) Integer valueRating,
         @Size(max = 500) String comment
 ) {}
