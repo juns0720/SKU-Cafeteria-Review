@@ -21,9 +21,9 @@
 
 ### Step 4. 다음 단계 검증 체크리스트 로드
 
-- frontend-progress.md의 "다음 작업" 항목에서 FE-N 번호 확인
-- docs/FRONTEND_PLAN.md에서 해당 FE-N 섹션만 찾아 읽기
-- "브라우저 검증" 항목을 추출해 요약에 포함
+- frontend-progress.md의 미완료 항목에서 다음 단위 ID 확인 (FE-B-*, FE-C-*, FE-D-*)
+- **docs/ui-ux-redesign-plan.md**에서 해당 단위 섹션을 찾아 읽기 (FRONTEND_PLAN.md는 아카이브, 사용 금지)
+- 필요하면 세션 플랜 파일(`~/.claude/plans/ui-ux-zany-boot.md`)의 해당 단위에서 상세 파일 목록·검증 기준 참조
 
 ### Step 5. 요약 출력 (아래 형식 그대로)
 
@@ -53,7 +53,7 @@
 
 ## 주의사항
 
-- FRONTEND_PLAN.md 전체를 읽지 말 것 (토큰 낭비)
-- 다음 단계의 FE-N 섹션만 읽을 것
-- 구현 완료 후 frontend-progress.md의 해당 항목을 [x]로 체크하고 "다음 작업"을 다음 FE 번호로 업데이트할 것
+- `ui-ux-redesign-plan.md`에서 **해당 단위 섹션만** 읽을 것 (전체 X)
+- `FRONTEND_PLAN.md`는 **아카이브** — 디자인 시스템 참조용 외에는 읽지 말 것
+- 구현 완료 후 `frontend-progress.md` 체크박스 갱신
 - git commit / git push 는 실행하지 말 것 — 커밋은 사용자가 직접 진행
