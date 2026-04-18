@@ -5,9 +5,12 @@ spring:
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
+  flyway:
+    baseline-on-migrate: true  # Railway 기존 DB 안전 처리
+    locations: classpath:db/migration
   jpa:
     hibernate:
-      ddl-auto: validate     # 운영에서는 스키마 변경 금지, 불일치 시 기동 실패
+      ddl-auto: validate     # Flyway 마이그레이션 후 엔티티-스키마 정합성 검증
     show-sql: false
     properties:
       hibernate:

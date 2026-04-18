@@ -5,9 +5,12 @@ spring:
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
+  flyway:
+    baseline-on-migrate: true  # 기존 DB에 flyway_schema_history 없을 때 V1을 baseline으로 표시
+    locations: classpath:db/migration
   jpa:
     hibernate:
-      ddl-auto: update       # 개발 중 스키마 자동 갱신
+      ddl-auto: none         # Flyway가 DDL 관리 — Hibernate 자동 갱신 비활성화
     show-sql: true           # 실행 쿼리 콘솔 출력
     properties:
       hibernate:

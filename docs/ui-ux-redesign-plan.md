@@ -25,7 +25,7 @@
 
 ## Phase A · 백엔드 스키마 & API (선행 필수)
 
-- [ ] **BE-A-1**: Flyway 도입 + V1 baseline SQL
+- [x] **BE-A-1**: Flyway 도입 + V1 baseline SQL
 - [ ] **BE-A-2**: User `customNickname` + UNIQUE + `PATCH /auth/me/nickname` (중복 시 409)
 - [ ] **BE-A-3**: Review 3축 별점(`tasteRating/amountRating/valueRating`) + `imageUrl` 컬럼 + 기존 `rating` DROP + 백필
 - [ ] **BE-A-4**: Menu `firstSeenAt` 컬럼 + 크롤러 연동

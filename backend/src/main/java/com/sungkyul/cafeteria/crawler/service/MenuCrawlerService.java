@@ -2,6 +2,8 @@ package com.sungkyul.cafeteria.crawler.service;
 
 import com.sungkyul.cafeteria.crawler.dto.CrawlingResult;
 import com.sungkyul.cafeteria.menu.entity.Menu;
+import com.sungkyul.cafeteria.menu.entity.MenuDate;
+import com.sungkyul.cafeteria.menu.repository.MenuDateRepository;
 import com.sungkyul.cafeteria.menu.repository.MenuRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +33,7 @@ public class MenuCrawlerService {
     private static final int TIMEOUT_MS = 10_000;
 
     private final MenuRepository menuRepository;
+    private final MenuDateRepository menuDateRepository;
 
     /** 테스트에서 stubbing 가능하도록 분리 (package-private) */
     Document fetchDocument() throws Exception {
@@ -62,7 +65,6 @@ public class MenuCrawlerService {
                 return CrawlingResult.failure("table 태그를 찾을 수 없습니다.");
             }
 
-            // 헤더에서 날짜 파싱 (첫 번째 th = 코너명이므로 skip)
             List<LocalDate> dates = parseDates(table);
             if (dates.isEmpty()) {
                 log.error("[Crawler] 날짜 헤더를 파싱할 수 없습니다.");
@@ -71,7 +73,6 @@ public class MenuCrawlerService {
 
             log.info("[Crawler] 파싱된 날짜: {}", dates);
 
-            // tbody tr 순회
             Elements rows = table.select("tbody tr");
             for (Element row : rows) {
                 Elements cells = row.select("td");
@@ -80,32 +81,30 @@ public class MenuCrawlerService {
                 String corner = cells.get(0).text().trim();
                 if (corner.isEmpty()) continue;
 
-                // 나머지 td = 요일별 메뉴
                 for (int i = 1; i < cells.size() && (i - 1) < dates.size(); i++) {
                     LocalDate servedDate = dates.get(i - 1);
                     Element cell = cells.get(i);
 
-                    // 주말 등 데이터 없는 셀 skip
                     if (cell.hasClass("no-data")) continue;
 
-                    // br 태그 기준으로 줄 분리
                     List<String> menuNames = splitByBr(cell);
 
                     for (String menuName : menuNames) {
                         if (menuName.isEmpty()) continue;
 
-                        boolean exists = menuRepository
-                                .findByNameAndServedDateAndCorner(menuName, servedDate, corner)
-                                .isPresent();
+                        // (name, corner) 기준으로 upsert — 메뉴 자체는 한 번만 저장
+                        Menu menu = menuRepository.findByNameAndCorner(menuName, corner)
+                                .orElseGet(() -> menuRepository.save(
+                                        Menu.builder().name(menuName).corner(corner).build()
+                                ));
 
-                        if (exists) {
+                        // 해당 주차 제공일 기록 — 이미 있으면 skip
+                        if (menuDateRepository.existsByMenuAndServedDate(menu, servedDate)) {
                             skippedCount++;
                         } else {
-                            menuRepository.save(Menu.builder()
-                                    .name(menuName)
-                                    .corner(corner)
-                                    .servedDate(servedDate)
-                                    .build());
+                            menuDateRepository.save(
+                                    MenuDate.builder().menu(menu).servedDate(servedDate).build()
+                            );
                             savedCount++;
                         }
                     }
@@ -159,11 +158,7 @@ public class MenuCrawlerService {
         return dates;
     }
 
-    /**
-     * td 안의 텍스트를 br 태그 기준으로 분리한다.
-     */
     private List<String> splitByBr(Element cell) {
-        // br을 줄바꿈 문자로 치환 후 분리
         cell.select("br").before("\\n");
         String text = cell.text().replace("\\n", "\n");
         List<String> result = new ArrayList<>();

@@ -4,6 +4,8 @@ import com.sungkyul.cafeteria.menu.dto.MenuResponse;
 import com.sungkyul.cafeteria.menu.dto.TodayMenuResponse;
 import com.sungkyul.cafeteria.menu.dto.WeeklyMenuResponse;
 import com.sungkyul.cafeteria.menu.entity.Menu;
+import com.sungkyul.cafeteria.menu.entity.MenuDate;
+import com.sungkyul.cafeteria.menu.repository.MenuDateRepository;
 import com.sungkyul.cafeteria.menu.repository.MenuRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -23,18 +25,13 @@ import java.util.Map;
 public class MenuService {
 
     private final MenuRepository menuRepository;
+    private final MenuDateRepository menuDateRepository;
 
     @Transactional(readOnly = true)
     public List<MenuResponse> getMenus(String sort) {
         List<MenuResponse> responses = menuRepository.findMenusWithReviews().stream()
-                .map(menu -> new MenuResponse(
-                        menu.getId(),
-                        menu.getName(),
-                        menu.getCorner(),
-                        menu.getServedDate(),
-                        menuRepository.findAverageRatingByMenuId(menu.getId()),
-                        menuRepository.countReviewsByMenuId(menu.getId())
-                ))
+                .map(menu -> toResponse(menu,
+                        menuDateRepository.findLatestServedDateByMenuId(menu.getId()).orElse(null)))
                 .collect(java.util.stream.Collectors.toCollection(ArrayList::new));
 
         Comparator<MenuResponse> comparator = switch (sort != null ? sort : "") {
@@ -42,7 +39,10 @@ public class MenuService {
                                         (MenuResponse r) -> r.averageRating() != null ? r.averageRating() : 0.0
                                    ).reversed();
             case "reviewCount"  -> Comparator.comparingLong(MenuResponse::reviewCount).reversed();
-            default             -> Comparator.comparing(MenuResponse::servedDate).reversed();
+            default             -> Comparator.comparing(
+                                        MenuResponse::servedDate,
+                                        Comparator.nullsLast(Comparator.reverseOrder())
+                                   );
         };
 
         responses.sort(comparator);
@@ -52,17 +52,10 @@ public class MenuService {
     @Transactional(readOnly = true)
     public TodayMenuResponse getTodayMenus() {
         LocalDate today = LocalDate.now();
-        List<Menu> menus = menuRepository.findByServedDate(today);
+        List<MenuDate> menuDates = menuDateRepository.findByServedDateFetchMenu(today);
 
-        List<MenuResponse> responses = menus.stream()
-                .map(menu -> new MenuResponse(
-                        menu.getId(),
-                        menu.getName(),
-                        menu.getCorner(),
-                        menu.getServedDate(),
-                        menuRepository.findAverageRatingByMenuId(menu.getId()),
-                        menuRepository.countReviewsByMenuId(menu.getId())
-                ))
+        List<MenuResponse> responses = menuDates.stream()
+                .map(md -> toResponse(md.getMenu(), md.getServedDate()))
                 .toList();
 
         return new TodayMenuResponse(today, responses);
@@ -74,7 +67,7 @@ public class MenuService {
         LocalDate monday = base.with(DayOfWeek.MONDAY);
         LocalDate friday = monday.plusDays(4);
 
-        List<Menu> menus = menuRepository.findByServedDateBetween(monday, friday);
+        List<MenuDate> menuDates = menuDateRepository.findByServedDateBetweenFetchMenu(monday, friday);
 
         Map<String, List<MenuResponse>> days = new LinkedHashMap<>();
         String[] keys = {"MON", "TUE", "WED", "THU", "FRI"};
@@ -82,8 +75,8 @@ public class MenuService {
             days.put(key, new ArrayList<>());
         }
 
-        for (Menu menu : menus) {
-            String key = switch (menu.getServedDate().getDayOfWeek()) {
+        for (MenuDate md : menuDates) {
+            String key = switch (md.getServedDate().getDayOfWeek()) {
                 case MONDAY    -> "MON";
                 case TUESDAY   -> "TUE";
                 case WEDNESDAY -> "WED";
@@ -92,15 +85,7 @@ public class MenuService {
                 default        -> null;
             };
             if (key == null) continue;
-
-            days.get(key).add(new MenuResponse(
-                    menu.getId(),
-                    menu.getName(),
-                    menu.getCorner(),
-                    menu.getServedDate(),
-                    menuRepository.findAverageRatingByMenuId(menu.getId()),
-                    menuRepository.countReviewsByMenuId(menu.getId())
-            ));
+            days.get(key).add(toResponse(md.getMenu(), md.getServedDate()));
         }
 
         return new WeeklyMenuResponse(monday, friday, days);
@@ -111,11 +96,16 @@ public class MenuService {
         Menu menu = menuRepository.findById(menuId)
                 .orElseThrow(() -> new EntityNotFoundException("메뉴를 찾을 수 없습니다"));
 
+        LocalDate latestDate = menuDateRepository.findLatestServedDateByMenuId(menuId).orElse(null);
+        return toResponse(menu, latestDate);
+    }
+
+    private MenuResponse toResponse(Menu menu, LocalDate servedDate) {
         return new MenuResponse(
                 menu.getId(),
                 menu.getName(),
                 menu.getCorner(),
-                menu.getServedDate(),
+                servedDate,
                 menuRepository.findAverageRatingByMenuId(menu.getId()),
                 menuRepository.countReviewsByMenuId(menu.getId())
         );

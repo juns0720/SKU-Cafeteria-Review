@@ -1,4 +1,4 @@
-import { GoogleLogin } from '@react-oauth/google'
+import { GoogleLogin } from '@react-oauth/google';
 
 export default function Header({ user, onLoginSuccess, onLogout }) {
   return (
@@ -8,12 +8,14 @@ export default function Header({ user, onLoginSuccess, onLogout }) {
           className="text-xl text-primary leading-none"
           style={{ fontFamily: '"DM Serif Display", serif' }}
         >
-          성결 학식
+          Cafeteria
         </span>
 
         {user ? (
           <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-700">{user.nickname ?? user.name}</span>
+            <span className="text-sm text-gray-700">
+              {user.nickname ?? user.name}
+            </span>
             <button
               onClick={onLogout}
               className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
@@ -35,5 +37,5 @@ export default function Header({ user, onLoginSuccess, onLogout }) {
         )}
       </div>
     </header>
-  )
+  );
 }

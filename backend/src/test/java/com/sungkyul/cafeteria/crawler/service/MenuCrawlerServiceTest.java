@@ -2,6 +2,8 @@ package com.sungkyul.cafeteria.crawler.service;
 
 import com.sungkyul.cafeteria.crawler.dto.CrawlingResult;
 import com.sungkyul.cafeteria.menu.entity.Menu;
+import com.sungkyul.cafeteria.menu.entity.MenuDate;
+import com.sungkyul.cafeteria.menu.repository.MenuDateRepository;
 import com.sungkyul.cafeteria.menu.repository.MenuRepository;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -27,6 +29,9 @@ class MenuCrawlerServiceTest {
 
     @Mock
     private MenuRepository menuRepository;
+
+    @Mock
+    private MenuDateRepository menuDateRepository;
 
     private MenuCrawlerService crawlerService;
 
@@ -76,7 +81,15 @@ class MenuCrawlerServiceTest {
 
     @BeforeEach
     void setUp() {
-        crawlerService = spy(new MenuCrawlerService(menuRepository));
+        crawlerService = spy(new MenuCrawlerService(menuRepository, menuDateRepository));
+
+        // 기본: 모든 메뉴가 신규 (사용하지 않는 테스트에서 예외가 발생하지 않도록 lenient 설정)
+        lenient().when(menuRepository.findByNameAndCorner(any(), any())).thenReturn(Optional.empty());
+        lenient().when(menuRepository.save(any(Menu.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        // 기본: 모든 menu_date가 신규
+        lenient().when(menuDateRepository.existsByMenuAndServedDate(any(), any())).thenReturn(false);
+        lenient().when(menuDateRepository.save(any(MenuDate.class))).thenAnswer(inv -> inv.getArgument(0));
     }
 
     @Test
@@ -84,8 +97,6 @@ class MenuCrawlerServiceTest {
     void crawlAndSave_allNewMenus_savesAll() throws Exception {
         Document doc = Jsoup.parse(SAMPLE_HTML);
         doReturn(doc).when(crawlerService).fetchDocument();
-        when(menuRepository.findByNameAndServedDateAndCorner(any(), any(), any()))
-                .thenReturn(Optional.empty());
 
         CrawlingResult result = crawlerService.crawlAndSave();
 
@@ -94,31 +105,33 @@ class MenuCrawlerServiceTest {
         assertThat(result.savedCount()).isEqualTo(7);
         assertThat(result.skippedCount()).isEqualTo(0);
 
-        ArgumentCaptor<Menu> captor = ArgumentCaptor.forClass(Menu.class);
-        verify(menuRepository, times(7)).save(captor.capture());
+        // menu_dates 7건 저장
+        verify(menuDateRepository, times(7)).save(any(MenuDate.class));
 
-        List<Menu> saved = captor.getAllValues();
-        assertThat(saved).extracting(Menu::getCorner).containsOnly("한식", "양식");
-        assertThat(saved).extracting(Menu::getName)
-                .contains("된장찌개", "공기밥", "김치", "스파게티");
-        // no-data 텍스트가 메뉴로 저장되지 않는지 확인
-        assertThat(saved).extracting(Menu::getName)
+        // 저장된 menu_dates에 no-data 텍스트가 없는지 — menu 이름으로 간접 확인
+        ArgumentCaptor<Menu> menuCaptor = ArgumentCaptor.forClass(Menu.class);
+        verify(menuRepository, atLeastOnce()).save(menuCaptor.capture());
+        assertThat(menuCaptor.getAllValues()).extracting(Menu::getCorner)
+                .allMatch(c -> c.equals("한식") || c.equals("양식"));
+        assertThat(menuCaptor.getAllValues()).extracting(Menu::getName)
                 .doesNotContain("등록된 식단내용이(가) 없습니다.");
     }
 
     @Test
-    @DisplayName("이미 존재하는 메뉴는 skip, 신규 메뉴만 저장")
-    void crawlAndSave_partialDuplicates_skipsExisting() throws Exception {
+    @DisplayName("이미 존재하는 menu_date는 skip, 신규만 저장")
+    void crawlAndSave_partialDuplicates_skipsExistingDate() throws Exception {
         Document doc = Jsoup.parse(SAMPLE_HTML);
         doReturn(doc).when(crawlerService).fetchDocument();
 
-        LocalDate monday = LocalDate.of(2026, 4, 13);
+        // 된장찌개/한식 메뉴는 이미 존재
+        Menu existingMenu = Menu.builder().name("된장찌개").corner("한식").build();
+        when(menuRepository.findByNameAndCorner(eq("된장찌개"), eq("한식")))
+                .thenReturn(Optional.of(existingMenu));
 
-        when(menuRepository.findByNameAndServedDateAndCorner(any(), any(), any()))
-                .thenReturn(Optional.empty());
-        // 된장찌개/한식/2026-04-13 → 이미 존재
-        when(menuRepository.findByNameAndServedDateAndCorner(eq("된장찌개"), eq(monday), eq("한식")))
-                .thenReturn(Optional.of(mock(Menu.class)));
+        // 된장찌개/한식 의 2026-04-13 날짜도 이미 기록됨
+        LocalDate monday = LocalDate.of(2026, 4, 13);
+        when(menuDateRepository.existsByMenuAndServedDate(eq(existingMenu), eq(monday)))
+                .thenReturn(true);
 
         CrawlingResult result = crawlerService.crawlAndSave();
 
@@ -138,6 +151,7 @@ class MenuCrawlerServiceTest {
         assertThat(result.errorMessage()).isNotNull();
         assertThat(result.savedCount()).isEqualTo(0);
         verify(menuRepository, never()).save(any());
+        verify(menuDateRepository, never()).save(any());
     }
 
     @Test
@@ -150,7 +164,7 @@ class MenuCrawlerServiceTest {
 
         assertThat(result.errorMessage()).isNotNull();
         assertThat(result.savedCount()).isEqualTo(0);
-        verify(menuRepository, never()).save(any());
+        verify(menuDateRepository, never()).save(any());
     }
 
     @Test
@@ -162,7 +176,7 @@ class MenuCrawlerServiceTest {
 
         assertThat(result.errorMessage()).contains("Connection refused");
         assertThat(result.savedCount()).isEqualTo(0);
-        verify(menuRepository, never()).save(any());
+        verify(menuDateRepository, never()).save(any());
     }
 
     @Test
@@ -170,16 +184,14 @@ class MenuCrawlerServiceTest {
     void crawlAndSave_parsedDatesAreCorrect() throws Exception {
         Document doc = Jsoup.parse(SAMPLE_HTML);
         doReturn(doc).when(crawlerService).fetchDocument();
-        when(menuRepository.findByNameAndServedDateAndCorner(any(), any(), any()))
-                .thenReturn(Optional.empty());
 
         crawlerService.crawlAndSave();
 
-        ArgumentCaptor<Menu> captor = ArgumentCaptor.forClass(Menu.class);
-        verify(menuRepository, atLeastOnce()).save(captor.capture());
+        ArgumentCaptor<MenuDate> captor = ArgumentCaptor.forClass(MenuDate.class);
+        verify(menuDateRepository, atLeastOnce()).save(captor.capture());
 
         List<LocalDate> dates = captor.getAllValues().stream()
-                .map(Menu::getServedDate)
+                .map(MenuDate::getServedDate)
                 .distinct()
                 .toList();
 
@@ -206,8 +218,6 @@ class MenuCrawlerServiceTest {
                 """;
         Document doc = Jsoup.parse(htmlWithEmptyCorner);
         doReturn(doc).when(crawlerService).fetchDocument();
-        when(menuRepository.findByNameAndServedDateAndCorner(any(), any(), any()))
-                .thenReturn(Optional.empty());
 
         CrawlingResult result = crawlerService.crawlAndSave();
 
@@ -215,5 +225,6 @@ class MenuCrawlerServiceTest {
         ArgumentCaptor<Menu> captor = ArgumentCaptor.forClass(Menu.class);
         verify(menuRepository, times(1)).save(captor.capture());
         assertThat(captor.getValue().getCorner()).isEqualTo("한식");
+        assertThat(captor.getValue().getName()).isEqualTo("김치찌개");
     }
 }

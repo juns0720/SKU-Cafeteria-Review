@@ -13,7 +13,7 @@
 
 세부 설계: [`docs/ui-ux-redesign-plan.md`](./ui-ux-redesign-plan.md)
 
-- [ ] **BE-A-1**: Flyway 도입 + V1 baseline
+- [x] **BE-A-1**: Flyway 도입 + V1 baseline
 - [ ] **BE-A-2**: User `customNickname` + UNIQUE + `PATCH /auth/me/nickname`
 - [ ] **BE-A-3**: Review 3축 별점(`tasteRating/amountRating/valueRating`) + `imageUrl` + `rating` DROP
 - [ ] **BE-A-4**: Menu `firstSeenAt` + 크롤러 연동
