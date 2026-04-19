@@ -26,8 +26,13 @@ public class MenuService {
     private final MenuDateRepository menuDateRepository;
 
     @Transactional(readOnly = true)
-    public List<MenuResponse> getMenus(String sort) {
-        List<MenuResponse> responses = menuRepository.findAggregated(null).stream()
+    public List<String> getCorners() {
+        return menuRepository.findDistinctCorners();
+    }
+
+    @Transactional(readOnly = true)
+    public List<MenuResponse> getMenus(String sort, String corner) {
+        List<MenuResponse> responses = menuRepository.findAggregated(corner).stream()
                 .filter(p -> p.reviewCount() > 0)
                 .map(p -> toResponse(p, p.latestServedDate()))
                 .collect(Collectors.toCollection(ArrayList::new));
@@ -48,10 +53,10 @@ public class MenuService {
     }
 
     @Transactional(readOnly = true)
-    public TodayMenuResponse getTodayMenus() {
+    public TodayMenuResponse getTodayMenus(String corner) {
         LocalDate today = LocalDate.now();
         List<MenuDate> menuDates = menuDateRepository.findByServedDateFetchMenu(today);
-        Map<Long, MenuAggregateProjection> projMap = buildProjectionMap(null);
+        Map<Long, MenuAggregateProjection> projMap = buildProjectionMap(corner);
 
         List<MenuResponse> responses = menuDates.stream()
                 .map(md -> {

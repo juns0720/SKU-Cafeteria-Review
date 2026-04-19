@@ -42,7 +42,7 @@
 
 **Menu API 확장 + N+1 해결**
 - [x] **BE-A-5a**: `findAggregated` JPQL + MenuService 재작성 (N+1 해결)
-- [ ] **BE-A-5b**: `corner` 필터 파라미터 + `GET /menus/corners`
+- [x] **BE-A-5b**: `corner` 필터 파라미터 + `GET /menus/corners`
 - [ ] **BE-A-5c**: `scope=all` 파라미터
 - [ ] **BE-A-5d**: `isNew` 계산 (`MIN(menu_dates.served_date) >= 이번 주 월요일`)
 - [ ] **BE-A-5e**: `GET /menus/best` (이번 주 + 리뷰 ≥ 3 + 평균 상위 2)

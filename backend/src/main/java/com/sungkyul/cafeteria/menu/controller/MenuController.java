@@ -25,14 +25,22 @@ public class MenuController {
 
     @GetMapping
     public ResponseEntity<List<MenuResponse>> getMenus(
-            @RequestParam(required = false) String sort
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false) String corner
     ) {
-        return ResponseEntity.ok(menuService.getMenus(sort));
+        return ResponseEntity.ok(menuService.getMenus(sort, corner));
+    }
+
+    @GetMapping("/corners")
+    public ResponseEntity<List<String>> getCorners() {
+        return ResponseEntity.ok(menuService.getCorners());
     }
 
     @GetMapping("/today")
-    public ResponseEntity<TodayMenuResponse> getToday() {
-        return ResponseEntity.ok(menuService.getTodayMenus());
+    public ResponseEntity<TodayMenuResponse> getToday(
+            @RequestParam(required = false) String corner
+    ) {
+        return ResponseEntity.ok(menuService.getTodayMenus(corner));
     }
 
     @GetMapping("/weekly")
