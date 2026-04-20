@@ -55,21 +55,31 @@ export default function LoginPage({ onLoginSuccess }) {
             <FoodIllust kind="chop" size={48} bg="#CDE5C8" />
           </div>
 
-          <div className="mt-10 flex items-center justify-center gap-2 rounded-full border-[1.5px] border-ink bg-paper px-4 py-2 text-sm text-inkSoft shadow-card">
-            <GoogleGlyph className="h-4 w-4 shrink-0" />
-            <span>Google 계정으로 바로 시작</span>
-          </div>
-
           <div className="mt-6 flex justify-center">
-            <GoogleLogin
-              onSuccess={(credentialResponse) => onLoginSuccess(credentialResponse.credential)}
-              onError={() => onLoginSuccess(null)}
-              size="large"
-              shape="pill"
-              text="continue_with"
-              locale="ko"
-              width="280"
-            />
+            <div className="relative h-12 w-full max-w-[296px]">
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center gap-3 rounded-full border-[1.8px] border-ink bg-white px-5 shadow-flat">
+                <GoogleGlyph className="h-5 w-5 shrink-0" />
+                <span className="font-disp text-base text-ink">
+                  Google 계정으로 바로 시작
+                </span>
+              </div>
+              <GoogleLogin
+                onSuccess={(credentialResponse) => onLoginSuccess(credentialResponse.credential)}
+                onError={() => onLoginSuccess(null)}
+                size="large"
+                shape="pill"
+                text="continue_with"
+                locale="ko"
+                width="296"
+                containerProps={{
+                  className: 'absolute inset-0 overflow-hidden rounded-full',
+                  style: {
+                    height: 48,
+                    opacity: 0.01,
+                  },
+                }}
+              />
+            </div>
           </div>
 
           <p className="mt-4 text-center text-xs leading-5 text-mute">
