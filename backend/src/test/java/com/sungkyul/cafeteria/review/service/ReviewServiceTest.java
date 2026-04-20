@@ -5,6 +5,7 @@ import com.sungkyul.cafeteria.menu.repository.MenuRepository;
 import com.sungkyul.cafeteria.review.dto.ReviewRequest;
 import com.sungkyul.cafeteria.review.dto.ReviewResponse;
 import com.sungkyul.cafeteria.review.entity.Review;
+import com.sungkyul.cafeteria.review.repository.MenuStatAgg;
 import com.sungkyul.cafeteria.review.repository.ReviewRepository;
 import com.sungkyul.cafeteria.user.entity.User;
 import com.sungkyul.cafeteria.user.repository.UserRepository;
@@ -60,6 +61,23 @@ class ReviewServiceTest {
         assertThatThrownBy(() -> reviewService.createReview(10L, request))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("이미 리뷰를 작성하셨습니다");
+    }
+
+    @Test
+    void createReview_집계캐시_갱신() {
+        Menu menu = Menu.builder().id(1L).name("김치찌개").corner("한식").build();
+        User user = User.builder().id(10L).nickname("테스터").profileImage(null).build();
+
+        given(menuRepository.findById(1L)).willReturn(Optional.of(menu));
+        given(reviewRepository.existsByUserIdAndMenuId(10L, 1L)).willReturn(false);
+        given(userRepository.getReferenceById(10L)).willReturn(user);
+        given(reviewRepository.save(any())).willAnswer(inv -> inv.getArgument(0));
+        given(reviewRepository.aggregateByMenuId(1L)).willReturn(new MenuStatAgg(5.0, 4.0, 3.0, 1L));
+
+        reviewService.createReview(10L, new ReviewRequest(1L, 5, 4, 3, "맛있어요", null));
+
+        assertThat(menu.getAvgOverall()).isEqualTo((5.0 + 4.0 + 3.0) / 3.0);
+        assertThat(menu.getReviewCount()).isEqualTo(1);
     }
 
     @Test

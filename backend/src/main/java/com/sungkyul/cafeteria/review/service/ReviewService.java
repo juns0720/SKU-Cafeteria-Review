@@ -2,6 +2,7 @@ package com.sungkyul.cafeteria.review.service;
 
 import com.sungkyul.cafeteria.menu.entity.Menu;
 import com.sungkyul.cafeteria.menu.repository.MenuRepository;
+import com.sungkyul.cafeteria.review.repository.MenuStatAgg;
 import com.sungkyul.cafeteria.review.dto.ReviewRequest;
 import java.util.List;
 import com.sungkyul.cafeteria.review.dto.ReviewResponse;
@@ -56,6 +57,7 @@ public class ReviewService {
                 .build();
 
         Review saved = reviewRepository.save(review);
+        recomputeMenuStats(menu.getId());
         return toResponse(saved, userId);
     }
 
@@ -75,7 +77,9 @@ public class ReviewService {
             throw new IllegalArgumentException("리뷰 삭제 권한이 없습니다");
         }
 
+        Long menuId = review.getMenu().getId();
         reviewRepository.delete(review);
+        recomputeMenuStats(menuId);
     }
 
     @Transactional
@@ -88,7 +92,14 @@ public class ReviewService {
         }
 
         review.update(request.tasteRating(), request.amountRating(), request.valueRating(), request.comment(), request.imageUrl());
+        recomputeMenuStats(review.getMenu().getId());
         return toResponse(review, userId);
+    }
+
+    private void recomputeMenuStats(Long menuId) {
+        MenuStatAgg agg = reviewRepository.aggregateByMenuId(menuId);
+        Menu menu = menuRepository.findById(menuId).orElseThrow();
+        menu.applyStats(agg.avgT(), agg.avgA(), agg.avgV(), agg.count());
     }
 
     private ReviewResponse toResponse(Review review, Long currentUserId) {

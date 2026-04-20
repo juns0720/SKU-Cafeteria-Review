@@ -32,4 +32,29 @@ public class Menu {
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    // 집계 캐시 (V8, recomputeMenuStats 로 갱신)
+    @Column(name = "avg_taste")
+    private Double avgTaste;
+
+    @Column(name = "avg_amount")
+    private Double avgAmount;
+
+    @Column(name = "avg_value")
+    private Double avgValue;
+
+    @Column(name = "avg_overall")
+    private Double avgOverall;
+
+    @Column(name = "review_count", nullable = false)
+    @Builder.Default
+    private int reviewCount = 0;
+
+    public void applyStats(Double avgT, Double avgA, Double avgV, long count) {
+        this.avgTaste   = avgT;
+        this.avgAmount  = avgA;
+        this.avgValue   = avgV;
+        this.avgOverall = (avgT == null) ? null : (avgT + avgA + avgV) / 3.0;
+        this.reviewCount = (int) count;
+    }
 }

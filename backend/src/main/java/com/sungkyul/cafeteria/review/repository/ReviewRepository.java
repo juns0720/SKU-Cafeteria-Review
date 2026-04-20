@@ -4,6 +4,8 @@ import com.sungkyul.cafeteria.review.entity.Review;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,4 +23,13 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     /** 1인 1메뉴 1리뷰 중복 작성 여부 확인 */
     boolean existsByUserIdAndMenuId(Long userId, Long menuId);
+
+    /** 메뉴별 3축 평균 + 리뷰 수 집계 (집계 캐시 갱신용) */
+    @Query("""
+        SELECT new com.sungkyul.cafeteria.review.repository.MenuStatAgg(
+            AVG(r.tasteRating), AVG(r.amountRating), AVG(r.valueRating), COUNT(r)
+        )
+        FROM Review r WHERE r.menu.id = :menuId
+    """)
+    MenuStatAgg aggregateByMenuId(@Param("menuId") Long menuId);
 }
