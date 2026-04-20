@@ -4,7 +4,12 @@ import com.sungkyul.cafeteria.menu.entity.Menu;
 import com.sungkyul.cafeteria.menu.repository.MenuRepository;
 import com.sungkyul.cafeteria.review.repository.MenuStatAgg;
 import com.sungkyul.cafeteria.review.dto.ReviewRequest;
+import com.sungkyul.cafeteria.user.domain.BadgeTier;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import com.sungkyul.cafeteria.review.dto.ReviewResponse;
 import com.sungkyul.cafeteria.review.dto.ReviewUpdateRequest;
 import com.sungkyul.cafeteria.review.entity.Review;
@@ -31,8 +36,17 @@ public class ReviewService {
     @Transactional(readOnly = true)
     public Page<ReviewResponse> getReviews(Long menuId, int page, int size, Long currentUserId) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        return reviewRepository.findByMenuId(menuId, pageable)
-                .map(review -> toResponse(review, currentUserId));
+        Page<Review> reviewPage = reviewRepository.findByMenuId(menuId, pageable);
+
+        Set<Long> userIds = reviewPage.getContent().stream()
+                .map(r -> r.getUser().getId())
+                .collect(Collectors.toSet());
+        Map<Long, Long> countMap = batchCountByUserIds(userIds);
+
+        return reviewPage.map(review -> {
+            BadgeTier tier = BadgeTier.of(countMap.getOrDefault(review.getUser().getId(), 0L));
+            return toResponse(review, currentUserId, tier);
+        });
     }
 
     @Transactional
@@ -60,13 +74,16 @@ public class ReviewService {
 
         Review saved = reviewRepository.save(review);
         recomputeMenuStats(menu.getId());
-        return toResponse(saved, userId);
+        BadgeTier tier = BadgeTier.of(reviewRepository.countByUserId(userId));
+        return toResponse(saved, userId, tier);
     }
 
     @Transactional(readOnly = true)
     public List<ReviewResponse> getMyReviews(Long userId) {
-        return reviewRepository.findByUserIdOrderByCreatedAtDesc(userId).stream()
-                .map(review -> toResponse(review, userId))
+        List<Review> reviews = reviewRepository.findByUserIdOrderByCreatedAtDesc(userId);
+        BadgeTier tier = BadgeTier.of(reviews.size());
+        return reviews.stream()
+                .map(review -> toResponse(review, userId, tier))
                 .toList();
     }
 
@@ -96,7 +113,17 @@ public class ReviewService {
         List<String> photos = resolvePhotoUrls(request.photoUrls(), request.imageUrl());
         review.update(request.tasteRating(), request.amountRating(), request.valueRating(), request.comment(), photos);
         recomputeMenuStats(review.getMenu().getId());
-        return toResponse(review, userId);
+        BadgeTier tier = BadgeTier.of(reviewRepository.countByUserId(userId));
+        return toResponse(review, userId, tier);
+    }
+
+    private Map<Long, Long> batchCountByUserIds(Set<Long> userIds) {
+        if (userIds.isEmpty()) return Map.of();
+        return reviewRepository.countGroupByUserIdIn(userIds).stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> (Long) row[1]
+                ));
     }
 
     private List<String> resolvePhotoUrls(List<String> photoUrls, String imageUrl) {
@@ -111,9 +138,13 @@ public class ReviewService {
         menu.applyStats(agg.avgT(), agg.avgA(), agg.avgV(), agg.count());
     }
 
-    private ReviewResponse toResponse(Review review, Long currentUserId) {
+    private ReviewResponse toResponse(Review review, Long currentUserId, BadgeTier authorBadgeTier) {
         boolean isMine = currentUserId != null
                 && currentUserId.equals(review.getUser().getId());
+
+        List<String> photos = review.getPhotoUrls() != null
+                ? Arrays.asList(review.getPhotoUrls())
+                : List.of();
 
         return new ReviewResponse(
                 review.getId(),
@@ -121,11 +152,13 @@ public class ReviewService {
                 review.getMenu().getName(),
                 review.getUser().getNickname(),
                 review.getUser().getProfileImage(),
+                authorBadgeTier,
                 review.getTasteRating(),
                 review.getAmountRating(),
                 review.getValueRating(),
                 review.overallRating(),
                 review.getComment(),
+                photos,
                 review.getImageUrl(),
                 review.getCreatedAt(),
                 review.getUpdatedAt(),

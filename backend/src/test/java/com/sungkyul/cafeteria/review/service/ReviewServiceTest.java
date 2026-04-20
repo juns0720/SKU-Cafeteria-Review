@@ -40,6 +40,7 @@ class ReviewServiceTest {
         given(userRepository.getReferenceById(10L)).willReturn(user);
         given(reviewRepository.save(any())).willAnswer(inv -> inv.getArgument(0));
         given(reviewRepository.aggregateByMenuId(1L)).willReturn(new MenuStatAgg(5.0, 4.0, 3.0, 1L));
+        given(reviewRepository.countByUserId(10L)).willReturn(1L);
 
         ReviewRequest request = new ReviewRequest(1L, 5, 4, 3, "맛있어요", null, "https://example.com/photo.jpg");
         ReviewResponse response = reviewService.createReview(10L, request);
