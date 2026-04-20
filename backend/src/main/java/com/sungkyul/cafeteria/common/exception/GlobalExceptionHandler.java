@@ -1,5 +1,6 @@
 package com.sungkyul.cafeteria.common.exception;
 
+import com.sungkyul.cafeteria.user.domain.NicknameCooldownException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -7,6 +8,10 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * 애플리케이션 전역 예외 처리기.
@@ -35,6 +40,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
                 .body(ErrorResponse.of(403, e.getMessage()));
+    }
+
+    @ExceptionHandler(NicknameCooldownException.class)
+    public ResponseEntity<Map<String, Object>> handleNicknameCooldown(NicknameCooldownException e) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("status", 409);
+        body.put("message", e.getMessage());
+        body.put("nextChangeAt", e.getNextChangeAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        body.put("timestamp", java.time.LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
 
     @ExceptionHandler(IllegalStateException.class)

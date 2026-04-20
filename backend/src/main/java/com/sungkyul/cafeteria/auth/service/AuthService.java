@@ -104,7 +104,8 @@ public class AuthService {
                 user.getAvatarColor(),
                 count, avgRating,
                 0L,   // badgeCount: 메뉴 메달 연동은 별도 트랙
-                tier, next, remaining
+                tier, next, remaining,
+                user.getNicknameChangedAt()
         );
     }
 

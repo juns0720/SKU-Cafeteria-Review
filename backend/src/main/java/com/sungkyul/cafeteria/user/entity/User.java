@@ -1,5 +1,6 @@
 package com.sungkyul.cafeteria.user.entity;
 
+import com.sungkyul.cafeteria.user.domain.NicknameCooldownException;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -42,6 +43,10 @@ public class User {
     @Builder.Default
     private String avatarColor = "#EF8A3D";
 
+    /** 마지막 닉네임 변경 시각 (V12, 쿨다운 계산용) */
+    @Column(name = "nickname_changed_at")
+    private LocalDateTime nicknameChangedAt;
+
     /** 계정 생성 시각 (DB 삽입 시 자동 설정) */
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
@@ -55,9 +60,16 @@ public class User {
         }
     }
 
-    /** 사용자가 직접 닉네임 변경 */
+    /** 사용자가 직접 닉네임 변경 (30일 쿨다운) */
     public void changeNickname(String nickname) {
+        if (nicknameChangedAt != null) {
+            LocalDateTime cooldownEnd = nicknameChangedAt.plusDays(30);
+            if (LocalDateTime.now().isBefore(cooldownEnd)) {
+                throw new NicknameCooldownException(cooldownEnd);
+            }
+        }
         this.nickname = nickname;
         this.isNicknameSet = true;
+        this.nicknameChangedAt = LocalDateTime.now();
     }
 }
