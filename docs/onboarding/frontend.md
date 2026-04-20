@@ -1,6 +1,6 @@
-# Skill: frontend-review
+# Frontend Session Onboarding Checklist
 
-새로운 프론트엔드 Claude Code 세션 시작 시 실행하는 Skill.
+프론트엔드 세션 시작 시 따르는 온보딩 체크리스트.
 
 ## 실행 순서
 
@@ -65,8 +65,7 @@
 
 ## 주의사항
 
-- `~/.claude/plans/` 사설 디렉토리는 **참조하지 말 것** — 모든 컨텍스트는 `docs/plans/`에 있음
 - `docs/plans/archive/frontend-v1.md`는 **아카이브**, 디자인 토큰 확인 외에는 읽지 말 것
 - 구현 완료 후 `docs/plans/ui-ux-redesign/99-progress.md` 체크박스만 갱신
 - `position: fixed` UI는 `createPortal(…, document.body)` 사용
-- `git commit` / `git push`는 사용자가 직접 진행 — Claude는 커밋하지 않음
+- `git commit` / `git push`는 사용자가 직접 진행 — AI는 커밋하지 않음

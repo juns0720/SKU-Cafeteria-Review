@@ -43,11 +43,12 @@ npm run lint     # ESLint
 - @docs/api.md — 전체 API 엔드포인트, 에러 형식, Exception → HTTP 매핑
 - @docs/conventions.md — 레이어 구조, 도메인 규칙, 엔티티 수정 패턴, 응답 코드
 - @docs/DESIGN.md — 프론트 디자인 시스템 v2 (컬러·타이포·컴포넌트 카탈로그)
+- 범용 AI(Codex 등) 진입점: [AGENTS.md](AGENTS.md)
 
 ## 새 세션 시작 시
 
-- **백엔드 세션**: `@docs/skills/project-review.md 를 읽고 순서대로 실행해줘.`
-- **프론트엔드 세션**: `@docs/skills/frontend-review.md 읽고 실행해줘.`
+- **백엔드 세션**: `@docs/onboarding/backend.md 를 읽고 순서대로 실행해줘.`
+- **프론트엔드 세션**: `@docs/onboarding/frontend.md 읽고 실행해줘.`
 
 ## 개발 규칙 (핵심)
 

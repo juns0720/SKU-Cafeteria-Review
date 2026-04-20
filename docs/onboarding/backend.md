@@ -1,6 +1,6 @@
-# Skill: project-review
+# Backend Session Onboarding Checklist
 
-새로운 Claude Code 세션이 시작될 때 프로젝트 전체를 빠르게 파악하기 위한 Skill (백엔드 세션 공통).
+새 세션 시작 시 프로젝트 전체를 빠르게 파악하기 위한 체크리스트 (백엔드 세션 공통).
 
 ## 목적
 
@@ -71,6 +71,5 @@
 ## 주의사항
 
 - `docs/plans/` 외부의 과거 플랜 파일은 존재하지 않음 (삭제되었음)
-- `~/.claude/plans/` 사설 디렉토리는 **참조하지 말 것** — 모든 컨텍스트는 `docs/plans/`에 있음
 - 구현 완료 후 **`docs/plans/<feature>/99-progress.md`만** 체크박스 갱신 (중복 갱신 X)
-- `git commit` / `git push`는 사용자가 직접 진행 — Claude는 커밋하지 않음
+- `git commit` / `git push`는 사용자가 직접 진행 — AI는 커밋하지 않음
