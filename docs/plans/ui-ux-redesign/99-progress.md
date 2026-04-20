@@ -80,7 +80,7 @@
 
 ## Phase 4 — 프론트 페이지 재작성
 
-- [ ] **P4-T1**: `OnboardingLogin` (`/login` 신규) — orangeSoft 배경 + Google G 로고
+- [x] **P4-T1**: `OnboardingLogin` (`/login` 신규) — orangeSoft 배경 + Google G 로고
 - [ ] **P4-T2**: `NicknameSetupModal` (FE-B-3 흡수) — 추천 칩 5개, 닫기 불가, 가용성 체크
 - [ ] **P4-T3**: `ProfilePage` (`/profile`, FE-B-4 흡수) — 카드/진행도/통계/내 리뷰 4섹션, MyReviewsPage 흡수
 - [ ] **P4-T4**: `BottomNav` → `TabBarHi` 4탭 교체 (FE-B-2 흡수)

@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { GoogleOAuthProvider } from '@react-oauth/google'
 import Header from './components/Header'
@@ -8,6 +8,7 @@ import WeeklyPage from './pages/WeeklyPage'
 import ReviewsPage from './pages/ReviewsPage'
 import MyReviewsPage from './pages/MyReviewsPage'
 import DevComponentsPage from './pages/DevComponentsPage'
+import LoginPage from './pages/LoginPage'
 import useAuth from './hooks/useAuth'
 import useToast from './hooks/useToast.jsx'
 
@@ -20,11 +21,26 @@ const queryClient = new QueryClient({
 function AppInner() {
   const { user, isLoggedIn, login, logout } = useAuth()
   const { showToast, ToastComponent } = useToast()
+  const location = useLocation()
+  const navigate = useNavigate()
+  const isLoginRoute = location.pathname === '/login'
+  const isDevRoute = location.pathname === '/dev/components'
+  const showHeader = !isLoginRoute && (isLoggedIn || isDevRoute)
+  const showBottomNav = !isLoginRoute && isLoggedIn
 
   const handleLoginSuccess = async (credential) => {
+    if (!credential) {
+      showToast('Google 로그인 정보를 가져오지 못했습니다', 'error')
+      return
+    }
+
     try {
       await login(credential)
       showToast('로그인 되었습니다', 'success')
+
+      if (location.pathname === '/login') {
+        navigate('/', { replace: true })
+      }
     } catch {
       showToast('로그인에 실패했습니다', 'error')
     }
@@ -33,22 +49,44 @@ function AppInner() {
   const handleLogout = () => {
     logout()
     showToast('로그아웃 되었습니다', 'success')
+    navigate('/login', { replace: true })
   }
+
+  const routes = (
+    <Routes>
+      <Route
+        path="/login"
+        element={
+          isLoggedIn ? (
+            <Navigate to="/" replace />
+          ) : (
+            <LoginPage onLoginSuccess={handleLoginSuccess} />
+          )
+        }
+      />
+      <Route path="/" element={isLoggedIn ? <HomePage /> : <Navigate to="/login" replace />} />
+      <Route path="/weekly" element={isLoggedIn ? <WeeklyPage /> : <Navigate to="/login" replace />} />
+      <Route path="/reviews" element={isLoggedIn ? <ReviewsPage /> : <Navigate to="/login" replace />} />
+      <Route path="/my-reviews" element={isLoggedIn ? <MyReviewsPage /> : <Navigate to="/login" replace />} />
+      <Route path="/dev/components" element={<DevComponentsPage />} />
+      <Route path="*" element={<Navigate to={isLoggedIn ? '/' : '/login'} replace />} />
+    </Routes>
+  )
 
   return (
     <>
       {ToastComponent}
-      <Header user={user} onLoginSuccess={handleLoginSuccess} onLogout={handleLogout} />
-      <main className="pt-14 pb-16 max-w-[1100px] mx-auto w-full">
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/weekly" element={<WeeklyPage />} />
-          <Route path="/reviews" element={<ReviewsPage />} />
-          <Route path="/my-reviews" element={<MyReviewsPage />} />
-          <Route path="/dev/components" element={<DevComponentsPage />} />
-        </Routes>
-      </main>
-      <BottomNav />
+      {showHeader && (
+        <Header user={user} onLoginSuccess={handleLoginSuccess} onLogout={handleLogout} />
+      )}
+      {isLoginRoute ? (
+        routes
+      ) : (
+        <main className="pt-14 pb-16 max-w-[1100px] mx-auto w-full">
+          {routes}
+        </main>
+      )}
+      {showBottomNav && <BottomNav />}
     </>
   )
 }
