@@ -37,7 +37,7 @@
 ## Phase 1 — DB 마이그레이션 (Flyway V8~V11)
 
 - [x] **P1-T1**: V8 — `menus`에 `first_seen_at`/`last_seen_at` + 집계 캐시 5종(`avg_taste/amount/value/overall`, `review_count`) + 백필
-- [ ] **P1-T2**: V9 — `menu_dates.meal_slot` 추가(default `LUNCH`, CHECK) + UNIQUE를 `(menu_id, served_date, meal_slot)`로 재정의
+- [x] **P1-T2**: V9 — `menu_dates.meal_slot` 추가(default `LUNCH`, CHECK) + UNIQUE를 `(menu_id, served_date, meal_slot)`로 재정의
 - [ ] **P1-T3**: V10 — `reviews.photo_urls TEXT[]` 추가(NOT NULL DEFAULT `{}`, CHECK ≤3) + `image_url` 백필
 - [ ] **P1-T4**: V10(계속) — `users.avatar_color VARCHAR(7) NOT NULL DEFAULT '#EF8A3D'`
 - [ ] **P1-T5**: V11(Phase 5에서 실행) — `reviews.image_url` DROP. **사전 조건**: FE/BE photo_urls 전환 + Railway PG 스냅샷.
