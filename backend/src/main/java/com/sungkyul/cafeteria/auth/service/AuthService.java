@@ -3,6 +3,8 @@ package com.sungkyul.cafeteria.auth.service;
 import com.sungkyul.cafeteria.auth.dto.LoginResponse;
 import com.sungkyul.cafeteria.auth.dto.UserResponse;
 import com.sungkyul.cafeteria.auth.jwt.JwtProvider;
+import com.sungkyul.cafeteria.review.repository.ReviewRepository;
+import com.sungkyul.cafeteria.user.domain.BadgeTier;
 import com.sungkyul.cafeteria.user.entity.User;
 import com.sungkyul.cafeteria.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -21,6 +23,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final JwtProvider jwtProvider;
     private final RestTemplate restTemplate;
+    private final ReviewRepository reviewRepository;
 
     private static final String GOOGLE_TOKENINFO_URL =
             "https://oauth2.googleapis.com/tokeninfo?id_token=";
@@ -87,10 +90,27 @@ public class AuthService {
     public UserResponse getMe(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다"));
+
+        long count = reviewRepository.countByUserId(userId);
+        Double avgRating = reviewRepository.findAvgOverallByUserId(userId);
+        BadgeTier tier = BadgeTier.of(count);
+        int next = nextTarget(count);
+        int remaining = Math.max(0, next - (int) count);
+
         return new UserResponse(
                 user.getId(), user.getGoogleId(),
                 user.getEmail(), user.getNickname(), user.getProfileImage(),
-                user.isNicknameSet()
+                user.isNicknameSet(),
+                user.getAvatarColor(),
+                count, avgRating,
+                0L,   // badgeCount: 메뉴 메달 연동은 별도 트랙
+                tier, next, remaining
         );
+    }
+
+    private int nextTarget(long count) {
+        if (count < 5)  return 5;
+        if (count < 30) return 30;
+        return 100;
     }
 }

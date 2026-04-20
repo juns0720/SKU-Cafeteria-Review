@@ -37,6 +37,11 @@ public class User {
     @Builder.Default
     private boolean isNicknameSet = false;
 
+    /** 아바타 색상 hex (V10, 기본 #EF8A3D) */
+    @Column(name = "avatar_color", nullable = false, length = 7)
+    @Builder.Default
+    private String avatarColor = "#EF8A3D";
+
     /** 계정 생성 시각 (DB 삽입 시 자동 설정) */
     @CreationTimestamp
     @Column(nullable = false, updatable = false)

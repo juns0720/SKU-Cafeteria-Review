@@ -56,7 +56,7 @@
 - [x] **P2-T8**: `GET /menus/today?slot=LUNCH` slot 파라미터
 - [x] **P2-T9**: `ReviewRequest`/`ReviewUpdateRequest`에 `photoUrls: List<String>` 추가 (image_url 호환 유지, 0~3장)
 - [x] **P2-T10**: `ReviewResponse`에 `photoUrls`, `authorBadgeTier` 추가 (배치 조회로 N+1 방지)
-- [ ] **P2-T11**: `UserResponse`/`AuthService.getMe` 확장 (`badgeTier/nextTarget/remaining/avatarColor/avgRating/reviewCount/badgeCount`)
+- [x] **P2-T11**: `UserResponse`/`AuthService.getMe` 확장 (`badgeTier/nextTarget/remaining/avatarColor/avgRating/reviewCount/badgeCount`)
 - [ ] **P2-T12**: 닉네임 30일 쿨다운 — `users.nickname_changed_at` 컬럼 추가(별도 마이그레이션) + 검증
 - [ ] **P2-T13**: `POST /api/cron/crawl` + `X-Cron-Secret` 헤더 검증 (`CRON_SECRET` env)
 - [ ] **P2-T14**: 크롤러 `meal_slot=LUNCH` 명시 + Corner 매핑 적용

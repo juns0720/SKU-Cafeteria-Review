@@ -28,6 +28,10 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     /** 특정 사용자의 리뷰 수 (BadgeTier 계산용) */
     long countByUserId(Long userId);
 
+    /** 특정 사용자가 쓴 리뷰들의 overall 평균 (프로필 통계용, 리뷰 없으면 null) */
+    @Query("SELECT AVG((r.tasteRating + r.amountRating + r.valueRating) / 3.0) FROM Review r WHERE r.user.id = :userId")
+    Double findAvgOverallByUserId(@Param("userId") Long userId);
+
     /** 여러 사용자의 리뷰 수 배치 조회 — [userId, count] 쌍 반환 */
     @Query("SELECT r.user.id, COUNT(r) FROM Review r WHERE r.user.id IN :userIds GROUP BY r.user.id")
     List<Object[]> countGroupByUserIdIn(@Param("userIds") Collection<Long> userIds);
