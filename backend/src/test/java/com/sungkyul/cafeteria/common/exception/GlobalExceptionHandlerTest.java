@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.web.servlet.MockMvc;
@@ -35,7 +36,7 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    void illegalArgumentException은_400을_반환한다() throws Exception {
+    void returns_400_for_illegal_argument_exception() throws Exception {
         mockMvc.perform(get("/test/bad-request"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
@@ -43,7 +44,7 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    void accessDeniedException은_403을_반환한다() throws Exception {
+    void returns_403_for_access_denied_exception() throws Exception {
         mockMvc.perform(get("/test/forbidden"))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.status").value(403))
@@ -51,7 +52,7 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    void validation예외는_400을_반환한다() throws Exception {
+    void returns_400_for_validation_exception() throws Exception {
         mockMvc.perform(post("/test/validation")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -62,6 +63,14 @@ class GlobalExceptionHandlerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.message").value("taste는 1 이상이어야 합니다"));
+    }
+
+    @Test
+    void returns_409_for_nickname_constraint_violation() throws Exception {
+        mockMvc.perform(get("/test/nickname-conflict"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.message").value("이미 사용 중인 닉네임입니다"));
     }
 
     @RestController
@@ -75,6 +84,13 @@ class GlobalExceptionHandlerTest {
         @GetMapping("/test/forbidden")
         void forbidden() {
             throw new AccessDeniedException("리뷰 수정 권한이 없습니다");
+        }
+
+        @GetMapping("/test/nickname-conflict")
+        void nicknameConflict() {
+            throw new DataIntegrityViolationException(
+                    "duplicate key value violates unique constraint \"uk_users_nickname_normalized\""
+            );
         }
 
         @PostMapping("/test/validation")

@@ -18,7 +18,6 @@ import java.time.LocalDate;
 import java.util.*;
 
 import org.springframework.data.domain.PageRequest;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -71,14 +70,10 @@ public class MenuService {
         LocalDate today = LocalDate.now();
         String resolvedSlot = (slot == null || slot.isBlank()) ? "LUNCH" : slot.toUpperCase();
         List<MenuDate> menuDates = menuDateRepository.findByServedDateAndMealSlotFetchMenu(today, resolvedSlot);
-        Map<Long, MenuAggregateProjection> projMap = buildProjectionMap(corner);
 
         List<MenuResponse> responses = menuDates.stream()
-                .map(md -> {
-                    MenuAggregateProjection proj = projMap.get(md.getMenu().getId());
-                    return proj != null ? toResponse(proj, md.getServedDate()) : null;
-                })
-                .filter(Objects::nonNull)
+                .filter(md -> corner == null || corner.isBlank() || Objects.equals(md.getMenu().getCorner(), corner))
+                .map(md -> MenuResponse.from(md.getMenu(), md.getServedDate()))
                 .toList();
 
         return new TodayMenuResponse(today, responses);
@@ -91,7 +86,6 @@ public class MenuService {
         LocalDate friday = monday.plusDays(4);
 
         List<MenuDate> menuDates = menuDateRepository.findByServedDateBetweenFetchMenu(monday, friday);
-        Map<Long, MenuAggregateProjection> projMap = buildProjectionMap(null);
 
         Map<String, List<MenuResponse>> days = new LinkedHashMap<>();
         String[] keys = {"MON", "TUE", "WED", "THU", "FRI"};
@@ -107,8 +101,7 @@ public class MenuService {
                 default        -> null;
             };
             if (key == null) continue;
-            MenuAggregateProjection proj = projMap.get(md.getMenu().getId());
-            if (proj != null) days.get(key).add(toResponse(proj, md.getServedDate()));
+            days.get(key).add(MenuResponse.from(md.getMenu(), md.getServedDate()));
         }
 
         return new WeeklyMenuResponse(monday, friday, days);
@@ -119,11 +112,6 @@ public class MenuService {
         MenuAggregateProjection proj = menuRepository.findAggregatedById(menuId)
                 .orElseThrow(() -> new EntityNotFoundException("메뉴를 찾을 수 없습니다"));
         return toResponse(proj, proj.latestServedDate());
-    }
-
-    private Map<Long, MenuAggregateProjection> buildProjectionMap(String corner) {
-        return menuRepository.findAggregated(corner).stream()
-                .collect(Collectors.toMap(MenuAggregateProjection::id, Function.identity()));
     }
 
     private MenuResponse toResponse(MenuAggregateProjection proj, LocalDate servedDate) {

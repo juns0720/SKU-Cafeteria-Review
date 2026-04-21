@@ -1,13 +1,20 @@
-export default function Toast({ message, type = 'success' }) {
+import { createPortal } from 'react-dom'
+
+export default function Toast({ message, type = 'success', offsetTop = 72 }) {
   const borderColor =
     type === 'success' ? 'var(--color-success)' : 'var(--color-error)'
 
-  return (
+  if (typeof document === 'undefined') {
+    return null
+  }
+
+  return createPortal(
     <div
-      className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-white shadow-lg rounded-lg px-4 py-3 text-sm font-medium border-l-4 animate-fadeIn whitespace-nowrap"
-      style={{ borderLeftColor: borderColor }}
+      className="fixed left-1/2 z-[70] max-w-[calc(100vw-2rem)] -translate-x-1/2 rounded-lg border-l-4 bg-white px-4 py-3 text-sm font-medium shadow-lg animate-fadeIn"
+      style={{ top: offsetTop, borderLeftColor: borderColor }}
     >
-      {message}
-    </div>
+      <span className="block truncate">{message}</span>
+    </div>,
+    document.body
   )
 }

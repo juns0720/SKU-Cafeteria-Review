@@ -80,11 +80,11 @@
 
 ## Phase 4 — 프론트 페이지 재작성
 
-- [ ] **P4-T1**: `OnboardingLogin` (`/login` 신규) — orangeSoft 배경 + Google G 로고
-- [ ] **P4-T2**: `NicknameSetupModal` (FE-B-3 흡수) — 추천 칩 5개, 닫기 불가, 가용성 체크
-- [ ] **P4-T3**: `ProfilePage` (`/profile`, FE-B-4 흡수) — 카드/진행도/통계/내 리뷰 4섹션, MyReviewsPage 흡수
-- [ ] **P4-T4**: `BottomNav` → `TabBarHi` 4탭 교체 (FE-B-2 흡수)
-- [ ] **P4-T5**: `HomePage` 재작성 — BEST 가로 스크롤 + 오늘 운영 코너 리스트 (FE-C-3 흡수, MOCK_TODAY 제거)
+- [x] **P4-T1**: `OnboardingLogin` (`/login` 신규) — orangeSoft 배경 + Google G 로고
+- [x] **P4-T2**: `NicknameSetupModal` (FE-B-3 흡수) — 추천 칩 5개, 닫기 불가, 가용성 체크
+- [x] **P4-T3**: `ProfilePage` (`/profile`, FE-B-4 흡수) — 카드/진행도/통계/내 리뷰 4섹션, MyReviewsPage 흡수
+- [x] **P4-T4**: `BottomNav` → `TabBarHi` 4탭 교체 (FE-B-2 흡수)
+- [x] **P4-T5**: `HomePage` 재작성 — BEST 가로 스크롤 + 오늘 운영 코너 리스트 (FE-C-3 흡수, MOCK_TODAY 제거)
 - [ ] **P4-T6**: `WeeklyPage` 재작성 — `WeekDayTabs` + 선택 요일 코너 리스트 (FE-C-4 흡수, WeekTab 삭제)
 - [ ] **P4-T7**: `AllMenusPage` (`/menus`, FE-C-5 흡수) — 검색/코너 필터/정렬/MedalSticker 리스트
 - [ ] **P4-T8**: `MenuDetailPage` (`/menus/:id`, FE-C-6 흡수) — 모달 → 풀스크린 라우트, 3축 집계 + 리뷰 리스트
@@ -116,6 +116,7 @@
 
 - [ ] RefreshToken 관리 미구현 — 발급만, 저장 안 함. Redis(Upstash 무료) 별도 트랙
 - [ ] AdminController 인가 — 일반 JWT로 접근 가능, ROLE_ADMIN 분리 별도 트랙
+- [ ] 닉네임 비속어/은어 필터 고도화 — 범위가 넓어 Phase 4/5 완료 후 별도 후속 작업으로 진행
 - [ ] BE-A-7 (Phase A 단독 Railway 배포) — Phase 2 게이트로 흡수
 - [x] ~~Menu API N+1 쿼리~~ → BE-A-5a 완료
 - [x] ~~`GlobalExceptionHandler` IllegalArgumentException → 403 매핑 부적절~~ → P2-T15에서 정정 예정

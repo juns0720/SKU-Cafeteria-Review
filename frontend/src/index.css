@@ -2,28 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
-
 :root {
-  /* v2 디자인 토큰 */
   --font-hand: 'Gaegu', system-ui, sans-serif;
   --font-disp: 'Jua', system-ui, sans-serif;
+  --font-user: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif;
 
-  --paper:       #FBF6EC;
-  --paper-deep:  #F4ECDC;
-  --ink:         #2B2218;
-  --ink-soft:    #574635;
-  --mute:        #8E7A66;
-  --rule:        #D8CBB6;
-  --orange:      #EF8A3D;
+  --paper: #FBF6EC;
+  --paper-deep: #F4ECDC;
+  --ink: #2B2218;
+  --ink-soft: #574635;
+  --mute: #8E7A66;
+  --rule: #D8CBB6;
+  --orange: #EF8A3D;
   --orange-soft: #FCE3C9;
-  --yellow:      #F4B73B;
+  --yellow: #F4B73B;
   --yellow-soft: #FBE6A6;
-  --green:       #4A8F5B;
-  --green-soft:  #CDE5C8;
-  --peach:       #F6C7A8;
-  --red:         #D9543A;
+  --green: #4A8F5B;
+  --green-soft: #CDE5C8;
+  --peach: #F6C7A8;
+  --red: #D9543A;
 
-  /* v1 호환 (Phase 5 삭제 예정) */
   --color-primary: #D94148;
   --color-primary-dark: #B93540;
   --color-primary-light: #FDEAEB;
@@ -52,6 +50,7 @@ body {
     opacity: 0;
     transform: translateY(12px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -62,25 +61,39 @@ body {
   0% {
     background-position: -200% 0;
   }
+
   100% {
     background-position: 200% 0;
   }
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideUp {
-  from { transform: translateY(20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }

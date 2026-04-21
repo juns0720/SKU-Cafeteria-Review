@@ -11,6 +11,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     boolean existsByGoogleId(String googleId);
 
-    /** 다른 사용자가 이미 동일 닉네임을 사용 중인지 확인 */
-    boolean existsByNicknameAndIdNot(String nickname, Long id);
+    boolean existsByNicknameNormalizedAndIdNot(String nicknameNormalized, Long id);
 }
