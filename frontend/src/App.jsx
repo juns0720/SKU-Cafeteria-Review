@@ -3,9 +3,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { GoogleOAuthProvider } from '@react-oauth/google'
 import { createPortal } from 'react-dom'
 import Header from './components/Header'
+import AllMenusPage from './pages/AllMenusPage'
 import HomePage from './pages/HomePage'
 import WeeklyPage from './pages/WeeklyPage'
-import ReviewsPage from './pages/ReviewsPage'
 import DevComponentsPage from './pages/DevComponentsPage'
 import LoginPage from './pages/LoginPage'
 import ProfilePage from './pages/ProfilePage'
@@ -121,7 +121,7 @@ function AppInner() {
       />
       <Route path="/" element={isLoggedIn ? <HomePage /> : <Navigate to="/login" replace />} />
       <Route path="/weekly" element={isLoggedIn ? <WeeklyPage /> : <Navigate to="/login" replace />} />
-      <Route path="/menus" element={isLoggedIn ? <ReviewsPage /> : <Navigate to="/login" replace />} />
+      <Route path="/menus" element={isLoggedIn ? <AllMenusPage /> : <Navigate to="/login" replace />} />
       <Route path="/reviews" element={<Navigate to={isLoggedIn ? '/menus' : '/login'} replace />} />
       <Route path="/profile" element={isLoggedIn ? <ProfilePage /> : <Navigate to="/login" replace />} />
       <Route path="/my-reviews" element={<Navigate to="/profile" replace />} />
