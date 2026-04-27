@@ -41,15 +41,15 @@
 body {
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont,
                'Apple SD Gothic Neo', system-ui, sans-serif;
-  background: var(--paper);
-  color: var(--ink);
+  background: #ffffff;
+  color: #191F28;
   -webkit-font-smoothing: antialiased;
 }
 
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(8px);
   }
 
   to {
