@@ -37,7 +37,7 @@
 - [x] **V3-T10**: `WeeklyPage` (`/weekly`) — `WeekPicker` + 요일별 코너 리스트
 - [x] **V3-T11**: `AllMenusPage` (`/menus`) — 검색 + `CategoryFilter` + 정렬 + `MedalDot`
 - [x] **V3-T12**: `MenuDetailPage` (`/menus/:id`) — 모달→풀스크린, 3축 `AxisProgress` + 리뷰 리스트
-- [ ] **V3-T13**: `ReviewWritePage` (`/menus/:id/review`) — `MultiStarInput` 3축 + textarea
+- [x] **V3-T13**: `ReviewWritePage` (`/menus/:id/review`) — `MultiStarInput` 3축 + textarea
 - [ ] **V3-T14**: `ProfilePage` (`/profile`) — 아바타 + `ProgressBar` + `StatsGrid` + 내 리뷰
 - [ ] **V3-T15**: `EmptyState` 통합 — Home/Weekly/AllMenus/Profile/MenuDetail 빈 상태에 `Empty` 적용
 - [ ] **V3-T16**: `App.jsx` 라우터 정리 — hi/ import 제거, coral/ 페이지로 교체
