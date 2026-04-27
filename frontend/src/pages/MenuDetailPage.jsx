@@ -1,231 +1,181 @@
+import { createPortal } from 'react-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getMenuById } from '../api/menus'
 import { deleteReview, getReviews } from '../api/reviews'
-import AxisBar from '../components/hi/AxisBar'
-import Card from '../components/hi/Card'
-import EmptyState from '../components/hi/EmptyState'
-import FoodIllust from '../components/hi/FoodIllust'
-import Icon from '../components/hi/Icon'
-import MedalSticker from '../components/hi/MedalSticker'
-import MultiStarSummary from '../components/hi/MultiStarSummary'
-import Pill from '../components/hi/Pill'
+import AxisProgress from '../components/coral/AxisProgress'
+import Empty from '../components/coral/Empty'
+import Icon from '../components/coral/Icon'
+import MultiStarSummary from '../components/coral/MultiStarSummary'
+import Stars from '../components/coral/Stars'
+import Thumb from '../components/coral/Thumb'
 import useToast from '../hooks/useToast.jsx'
 
-const BADGE_EMOJI = {
-  GOLD: '🥇',
-  SILVER: '🥈',
-  BRONZE: '🥉',
-  NONE: '🌱',
+const BADGE_EMOJI = { GOLD: '🥇', SILVER: '🥈', BRONZE: '🥉', NONE: '' }
+
+function formatDate(value) {
+  if (!value) return ''
+  const d = new Date(value)
+  if (isNaN(d.getTime())) return ''
+  return `${d.getMonth() + 1}월 ${d.getDate()}일`
 }
 
-function toDate(value) {
-  if (!value) {
-    return null
-  }
-
-  if (typeof value === 'string') {
-    const matched = value.match(/^(\d{4})-(\d{2})-(\d{2})$/)
-    if (matched) {
-      const [, year, month, day] = matched
-      return new Date(Number(year), Number(month) - 1, Number(day), 12)
-    }
-  }
-
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) {
-    return null
-  }
-
-  return date
-}
-
-function formatServedDate(value) {
-  const date = toDate(value)
-  if (!date) {
-    return '최근 제공일 정보 없음'
-  }
-
-  return `${date.getMonth() + 1}월 ${date.getDate()}일 제공`
-}
-
-function formatReviewDate(value) {
-  const date = toDate(value)
-  if (!date) {
-    return ''
-  }
-
-  return `${date.getMonth() + 1}.${date.getDate()} 작성`
-}
-
-function getIllustrationProps(corner) {
-  const normalized = corner?.toLowerCase?.() ?? ''
-
-  if (normalized.includes('한식') || normalized.includes('국')) {
-    return { kind: 'soup', bg: '#FCE3C9' }
-  }
-
-  if (normalized.includes('양식') || normalized.includes('western')) {
-    return { kind: 'bowl', bg: '#FBE6A6' }
-  }
-
-  if (normalized.includes('분식') || normalized.includes('snack')) {
-    return { kind: 'bowl', bg: '#F6C7A8' }
-  }
-
-  if (normalized.includes('일품') || normalized.includes('특식') || normalized.includes('special')) {
-    return { kind: 'chop', bg: '#CDE5C8' }
-  }
-
-  return { kind: 'bowl', bg: '#F4ECDC' }
+function formatLastSeen(value) {
+  if (!value) return ''
+  // "yyyy-mm-dd" 또는 ISO string 처리
+  const m = String(value).match(/^(\d{4})-(\d{2})-(\d{2})/)
+  if (m) return `${+m[2]}월 ${+m[3]}일 제공`
+  const d = new Date(value)
+  if (isNaN(d.getTime())) return ''
+  return `${d.getMonth() + 1}월 ${d.getDate()}일 제공`
 }
 
 function DetailSkeleton() {
   return (
-    <div className="animate-fadeInUp">
-      <div className="mx-auto flex w-full max-w-[760px] flex-col gap-4 px-4 py-5">
-        <div className="h-10 w-24 rounded-full bg-paperDeep shimmer-bg" />
-        <div className="h-56 rounded-[32px] bg-paperDeep shimmer-bg" />
-        <div className="h-40 rounded-[28px] bg-paperDeep shimmer-bg" />
-        <div className="h-24 rounded-[28px] bg-paperDeep shimmer-bg" />
-        <div className="h-36 rounded-[28px] bg-paperDeep shimmer-bg" />
+    <div className="animate-fadeInUp px-6 pt-2">
+      <div className="w-9 h-9 rounded-full bg-g100 animate-pulse mb-4" />
+      <div className="flex flex-col items-center gap-3 mb-6">
+        <div className="w-[140px] h-[140px] rounded-[24px] bg-g100 animate-pulse" />
+        <div className="h-4 w-24 bg-g100 rounded-full animate-pulse" />
+        <div className="h-7 w-36 bg-g100 rounded-full animate-pulse" />
+        <div className="h-4 w-28 bg-g100 rounded-full animate-pulse" />
       </div>
+      <div className="h-24 rounded-2xl bg-g100 animate-pulse mb-5" />
+      <div className="h-4 w-20 bg-g100 rounded-full animate-pulse mb-3" />
+      {[1, 2].map((i) => (
+        <div key={i} className="py-3.5 space-y-2">
+          <div className="h-4 w-32 bg-g100 rounded-full animate-pulse" />
+          <div className="h-3 w-24 bg-g100 rounded-full animate-pulse" />
+          <div className="h-12 bg-g100 rounded-xl animate-pulse" />
+        </div>
+      ))}
     </div>
   )
 }
 
-function ReviewCard({ review, onDelete, onEdit, isDeleting }) {
-  const badgeEmoji = BADGE_EMOJI[review.authorBadgeTier] ?? BADGE_EMOJI.NONE
-  const photoUrls = review.photoUrls?.filter(Boolean) ?? []
+function ReviewRow({ review, onDelete, onEdit, isDeleting }) {
+  const badge = BADGE_EMOJI[review.authorBadgeTier] ?? ''
+  const photoUrls = (review.photoUrls ?? []).filter(Boolean)
 
   return (
-    <Card bg="#FFFFFF" style={{ padding: '16px 16px 14px', borderRadius: 28 }}>
-      <div className="flex items-start gap-3">
-        <div className="mt-0.5 h-11 w-11 shrink-0 overflow-hidden rounded-full border border-ink bg-paper shadow-card">
-          {review.userProfileImage ? (
-            <img
-              src={review.userProfileImage}
-              alt={review.userNickname}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center font-disp text-base text-ink">
-              {review.userNickname?.[0] ?? '?'}
-            </div>
-          )}
+    <div className="py-3.5">
+      {/* 작성자 row */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <div
+            className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-[13px] font-bold text-white"
+            style={{ background: review.avatarColor ?? '#B0B8C1' }}
+          >
+            {review.nickname?.[0] ?? '?'}
+          </div>
+          <span className="text-[13px] font-bold text-g900 truncate">{review.nickname}</span>
+          {badge && <span className="text-[13px] flex-shrink-0">{badge}</span>}
+          <span className="text-[11px] text-g500 flex-shrink-0">· {formatDate(review.createdAt)}</span>
         </div>
-
-        <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <div className="truncate font-disp text-[1.05rem] leading-none text-ink">
-                  {review.userNickname}
-                </div>
-                <span className="font-hand text-sm text-inkSoft" aria-label={review.authorBadgeTier ?? 'NONE'}>
-                  {badgeEmoji}
-                </span>
-              </div>
-              <div className="mt-2 font-hand text-xs text-mute">
-                {formatReviewDate(review.createdAt)}
-              </div>
-            </div>
-
-            <div className="rounded-full border border-rule bg-paper px-2.5 py-1 font-hand text-xs text-inkSoft">
-              평균 {Number(review.overall).toFixed(1)}
-            </div>
-          </div>
-
-          <div className="mt-4">
-            <MultiStarSummary
-              taste={review.taste}
-              amount={review.amount}
-              value={review.value}
-            />
-          </div>
-
-          <p className="mt-3 whitespace-pre-line font-hand text-sm leading-6 text-inkSoft">
-            {review.comment?.trim() || '한 마디는 비워뒀어요'}
-          </p>
-
-          {photoUrls.length > 0 && (
-            <div className="mt-4 grid grid-cols-3 gap-2">
-              {Array.from({ length: 3 }).map((_, index) => {
-                const photoUrl = photoUrls[index]
-                return (
-                  <div
-                    key={`${review.id}-photo-${index}`}
-                    className={`aspect-square overflow-hidden rounded-[18px] border border-rule ${
-                      photoUrl ? 'bg-paper' : 'border-dashed bg-paperDeep/50'
-                    }`}
-                  >
-                    {photoUrl && (
-                      <img
-                        src={photoUrl}
-                        alt={`${review.userNickname} 리뷰 사진 ${index + 1}`}
-                        className="h-full w-full object-cover"
-                      />
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-          )}
-
-          {review.isMine && (
-            <div className="mt-4 flex items-center gap-2">
-              <button
-                type="button"
-                onClick={onEdit}
-                disabled={isDeleting}
-                className="rounded-full border border-rule bg-paper px-3 py-1.5 font-hand text-xs text-inkSoft transition-transform active:scale-[0.98] disabled:opacity-50"
-              >
-                수정
-              </button>
-              <button
-                type="button"
-                onClick={() => onDelete(review.id)}
-                disabled={isDeleting}
-                className="rounded-full border border-red bg-white px-3 py-1.5 font-hand text-xs text-red transition-transform active:scale-[0.98] disabled:opacity-50"
-              >
-                {isDeleting ? '삭제 중...' : '삭제'}
-              </button>
-            </div>
-          )}
+        {/* 우측: 종합 별점 */}
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <Stars value={review.overallRating ?? 0} size={12} />
+          <span className="text-[13px] font-bold text-g900">{(review.overallRating ?? 0).toFixed(1)}</span>
         </div>
       </div>
-    </Card>
+
+      {/* 3축 요약 */}
+      <div className="mt-1.5">
+        <MultiStarSummary
+          taste={review.tasteRating}
+          amount={review.amountRating}
+          value={review.valueRating}
+        />
+      </div>
+
+      {/* 코멘트 */}
+      {review.comment && (
+        <p className="text-[14px] text-g800 mt-2 leading-relaxed whitespace-pre-line">
+          {review.comment}
+        </p>
+      )}
+
+      {/* 사진 */}
+      {photoUrls.length > 0 && (
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          {photoUrls.map((url, i) => (
+            <div key={i} className="aspect-square rounded-[12px] overflow-hidden bg-g100">
+              <img src={url} alt={`리뷰 사진 ${i + 1}`} className="w-full h-full object-cover" />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* 내 리뷰 액션 */}
+      {review.isMine && (
+        <div className="flex items-center gap-2 mt-3">
+          <button
+            type="button"
+            onClick={onEdit}
+            disabled={isDeleting}
+            className="text-[12px] font-semibold text-g700 px-3 py-1.5 rounded-full bg-g50 disabled:opacity-50"
+          >
+            수정
+          </button>
+          <button
+            type="button"
+            onClick={() => onDelete(review.id)}
+            disabled={isDeleting}
+            className="text-[12px] font-semibold text-red-500 px-3 py-1.5 rounded-full bg-g50 disabled:opacity-50"
+          >
+            {isDeleting ? '삭제 중...' : '삭제'}
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function CtaPortal({ label, onClick }) {
+  if (typeof document === 'undefined') return null
+  return createPortal(
+    <div
+      className="fixed inset-x-0 bottom-0 z-50 bg-white border-t border-g100 px-6"
+      style={{ paddingBottom: 'max(18px, env(safe-area-inset-bottom))', paddingTop: 12 }}
+    >
+      <button
+        type="button"
+        onClick={onClick}
+        className="w-full py-4 bg-g900 text-white rounded-[14px] text-[16px] font-bold tracking-[-0.3px] flex items-center justify-center gap-2 active:scale-[0.99] transition-transform"
+      >
+        <Icon name="pencil" size={16} color="#fff" weight={2} />
+        {label}
+      </button>
+    </div>,
+    document.body
   )
 }
 
 export default function MenuDetailPage() {
   const navigate = useNavigate()
-  const params = useParams()
+  const { id } = useParams()
   const queryClient = useQueryClient()
   const { showToast, ToastComponent } = useToast()
-  const menuId = Number(params.id)
-  const isValidMenuId = Number.isInteger(menuId) && menuId > 0
-  const {
-    data: menu,
-    isLoading: isMenuLoading,
-    isError: isMenuError,
-  } = useQuery({
+
+  const menuId = Number(id)
+  const isValidId = Number.isInteger(menuId) && menuId > 0
+
+  const { data: menu, isLoading: isMenuLoading, isError: isMenuError } = useQuery({
     queryKey: ['menus', menuId],
     queryFn: () => getMenuById(menuId),
-    enabled: isValidMenuId,
+    enabled: isValidId,
   })
-  const {
-    data: reviewPage,
-    isLoading: isReviewsLoading,
-    isError: isReviewsError,
-  } = useQuery({
+
+  const { data: reviewPage, isLoading: isReviewsLoading, isError: isReviewsError } = useQuery({
     queryKey: ['reviews', menuId],
     queryFn: () => getReviews(menuId),
-    enabled: isValidMenuId,
+    enabled: isValidId,
   })
 
   const reviews = reviewPage?.content ?? []
-  const myReview = reviews.find((review) => review.isMine)
+  const totalReviews = reviewPage?.totalElements ?? reviews.length
+  const myReview = reviews.find((r) => r.isMine)
+
   const deleteMutation = useMutation({
     mutationFn: deleteReview,
     onSuccess: async () => {
@@ -237,217 +187,162 @@ export default function MenuDetailPage() {
       ])
       showToast('리뷰가 삭제되었습니다', 'success')
     },
-    onError: (error) => {
-      showToast(error.response?.data?.message ?? '리뷰 삭제에 실패했습니다', 'error')
+    onError: (err) => {
+      showToast(err.response?.data?.message ?? '리뷰 삭제에 실패했습니다', 'error')
     },
   })
 
-  const handleDeleteReview = (reviewId) => {
-    if (!window.confirm('리뷰를 삭제할까요?')) {
-      return
-    }
-
+  const handleDelete = (reviewId) => {
+    if (!window.confirm('리뷰를 삭제할까요?')) return
     deleteMutation.mutate(reviewId)
   }
 
-  const handleOpenReviewForm = () => {
-    navigate(`/menus/${menuId}/review`)
-  }
+  const handleOpenReview = () => navigate(`/menus/${menuId}/review`)
 
-  if (!isValidMenuId) {
+  // 잘못된 ID
+  if (!isValidId) {
     return (
-      <div className="mx-auto flex w-full max-w-[760px] flex-col gap-4 px-4 py-5 animate-fadeInUp">
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="inline-flex w-fit items-center gap-2 rounded-full border-[1.5px] border-ink bg-white px-4 py-2 font-hand text-sm text-ink shadow-card"
-        >
-          <Icon name="chevL" size={18} color="#2B2218" />
-          뒤로
-        </button>
-
-        <Card bg="#FFFFFF" style={{ padding: '24px 20px', borderRadius: 28 }}>
-          <p className="font-disp text-lg leading-none text-ink">잘못된 메뉴 경로예요</p>
-          <p className="mt-3 font-hand text-sm leading-6 text-mute">
-            메뉴 목록에서 다시 선택해 주세요.
-          </p>
-        </Card>
+      <div className="animate-fadeInUp px-6 py-4">
+        <BackButton onClick={() => navigate(-1)} />
+        <div className="mt-4 p-5 rounded-2xl bg-g50 text-[15px] text-g700">잘못된 메뉴 경로예요.</div>
       </div>
     )
   }
 
-  if (isMenuLoading) {
-    return <DetailSkeleton />
-  }
+  if (isMenuLoading) return <DetailSkeleton />
 
   if (isMenuError || !menu) {
     return (
       <>
         {ToastComponent}
-        <div className="mx-auto flex w-full max-w-[760px] flex-col gap-4 px-4 py-5 animate-fadeInUp">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="inline-flex w-fit items-center gap-2 rounded-full border-[1.5px] border-ink bg-white px-4 py-2 font-hand text-sm text-ink shadow-card"
-          >
-            <Icon name="chevL" size={18} color="#2B2218" />
-            뒤로
-          </button>
-
-          <Card bg="#FFFFFF" style={{ padding: '24px 20px', borderRadius: 28 }}>
-            <p className="font-disp text-lg leading-none text-ink">메뉴를 불러오지 못했어요</p>
-            <p className="mt-3 font-hand text-sm leading-6 text-red">
-              잠시 후 다시 시도해 주세요.
-            </p>
-          </Card>
+        <div className="animate-fadeInUp px-6 py-4">
+          <BackButton onClick={() => navigate(-1)} />
+          <div className="mt-4">
+            <Empty icon="bowl" title="메뉴를 불러오지 못했어요" description="잠시 후 다시 시도해주세요" />
+          </div>
         </div>
       </>
     )
   }
 
-  const illust = getIllustrationProps(menu.corner)
   const hasAggregate = menu.avgTaste != null && menu.avgAmount != null && menu.avgValue != null
-  const ctaLabel = myReview ? '리뷰 수정' : '리뷰 쓰기 →'
 
   return (
     <>
       {ToastComponent}
 
-      <div className="animate-fadeInUp">
-        <div className="mx-auto flex w-full max-w-[760px] flex-col gap-4 px-4 py-5 pb-28">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="inline-flex w-fit items-center gap-2 rounded-full border-[1.5px] border-ink bg-white px-4 py-2 font-hand text-sm text-ink shadow-card transition-transform active:scale-[0.98]"
-          >
-            <Icon name="chevL" size={18} color="#2B2218" />
-            뒤로
-          </button>
+      <div className="animate-fadeInUp pb-[88px]">
+        {/* 상단 바 */}
+        <div className="px-4 py-2 flex items-center justify-between flex-shrink-0">
+          <BackButton onClick={() => navigate(-1)} />
+        </div>
 
-          <Card bg="#FFFFFF" style={{ padding: '22px 20px', borderRadius: 32 }}>
-            <div className="flex flex-col items-center text-center">
-              <FoodIllust kind={illust.kind} size={118} bg={illust.bg} />
-
-              <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
-                <MedalSticker tier={menu.tier} size={24} />
-                {menu.isNew && (
-                  <Pill
-                    bg="#EF8A3D"
-                    color="#FFFFFF"
-                    border="#EF8A3D"
-                    style={{ fontSize: 11, padding: '2px 9px' }}
-                  >
-                    NEW
-                  </Pill>
-                )}
-                <span className="rounded-full border border-rule bg-paper px-3 py-1 font-hand text-xs text-inkSoft">
-                  {menu.corner || '기타'}
-                </span>
+        {/* Hero */}
+        <div className="flex flex-col items-center px-6 pb-[18px] flex-shrink-0">
+          <div className="relative">
+            <Thumb corner={menu.corner} size={140} radius={24} />
+            {menu.tier === 'GOLD' && (
+              <div className="absolute top-2.5 left-2.5 bg-coral text-white text-[11px] font-extrabold px-2.5 py-0.5 rounded-full">
+                BEST
               </div>
-
-              <h1 className="mt-4 font-disp text-[2rem] leading-none text-ink">{menu.name}</h1>
-              <p className="mt-3 font-hand text-sm text-inkSoft">{formatServedDate(menu.servedDate)}</p>
-
-              <div className="mt-5 flex items-center gap-2 rounded-full border border-rule bg-paper px-3 py-2">
-                <span className="font-hand text-xs text-mute">리뷰</span>
-                <span className="font-disp text-base leading-none text-ink">{menu.reviewCount ?? 0}</span>
-                <span className="font-hand text-xs text-mute">개</span>
-                <span className="h-1 w-1 rounded-full bg-rule" />
-                <span className="font-hand text-xs text-mute">평균</span>
-                <span className="font-disp text-base leading-none text-ink">
-                  {menu.avgOverall != null ? menu.avgOverall.toFixed(1) : '-'}
-                </span>
+            )}
+            {menu.isNew && (
+              <div className="absolute top-2.5 right-2.5 bg-coralSoft text-coral text-[10px] font-bold px-1.5 py-px rounded-[3px]">
+                NEW
               </div>
+            )}
+          </div>
+
+          <div className="text-[13px] font-medium text-g500 mt-3.5">
+            {[menu.corner, formatLastSeen(menu.lastSeenAt)].filter(Boolean).join(' · ')}
+          </div>
+          <h1 className="text-[26px] font-extrabold tracking-[-0.7px] text-g900 mt-0.5 text-center">
+            {menu.name}
+          </h1>
+          <div className="flex items-center gap-1.5 mt-1.5">
+            <Stars value={menu.avgOverall ?? 0} size={16} />
+            <span className="text-[17px] font-extrabold text-g900">
+              {menu.avgOverall != null ? menu.avgOverall.toFixed(1) : '-'}
+            </span>
+            <span className="text-[13px] text-g500">· 리뷰 {menu.reviewCount ?? 0}개</span>
+          </div>
+        </div>
+
+        {/* 3축 평균 */}
+        <div className="mx-6 mb-[22px]">
+          {hasAggregate ? (
+            <AxisProgress taste={menu.avgTaste} amount={menu.avgAmount} value={menu.avgValue} />
+          ) : (
+            <div className="p-4 rounded-2xl bg-g50 text-[13px] text-g500 text-center">
+              아직 집계된 리뷰가 없어요
             </div>
-          </Card>
+          )}
+        </div>
 
-          <Card bg="#FFFFFF" style={{ padding: '18px 18px 16px', borderRadius: 28 }}>
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <div className="font-hand text-sm text-mute">3축 평균</div>
-                <h2 className="mt-1 font-disp text-[1.45rem] leading-none text-ink">학생들이 남긴 평가</h2>
-              </div>
-              {menu.avgOverall != null && (
-                <div className="rounded-full border border-rule bg-paper px-3 py-1 font-hand text-xs text-inkSoft">
-                  overall {menu.avgOverall.toFixed(1)}
+        {/* 리뷰 섹션 */}
+        <div className="px-6">
+          <div className="flex items-baseline justify-between mb-2.5">
+            <span className="text-[16px] font-extrabold tracking-[-0.4px] text-g900">
+              리뷰 {totalReviews}
+            </span>
+            <span className="text-[13px] font-semibold text-g600">최신순</span>
+          </div>
+
+          {isReviewsLoading ? (
+            <div className="space-y-3">
+              {[1, 2].map((i) => (
+                <div key={i} className="py-3.5 space-y-2 animate-pulse">
+                  <div className="flex gap-2 items-center">
+                    <div className="w-8 h-8 rounded-full bg-g100" />
+                    <div className="h-4 w-24 bg-g100 rounded-full" />
+                  </div>
+                  <div className="h-3 w-20 bg-g100 rounded-full" />
+                  <div className="h-10 bg-g100 rounded-xl" />
                 </div>
-              )}
+              ))}
             </div>
-
-            {hasAggregate ? (
-              <div className="mt-5 flex flex-col gap-3">
-                <AxisBar label="맛" value={menu.avgTaste} color="#EF8A3D" />
-                <AxisBar label="양" value={menu.avgAmount} color="#C89A2A" />
-                <AxisBar label="가성비" value={menu.avgValue} color="#4A8F5B" />
-              </div>
-            ) : (
-              <div className="mt-5 rounded-[22px] border border-dashed border-rule bg-paper px-4 py-5">
-                <p className="font-hand text-sm leading-6 text-mute">
-                  아직 집계된 리뷰가 없습니다. 첫 평가를 남겨보세요.
-                </p>
-              </div>
-            )}
-          </Card>
-
-          <section>
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div>
-                <div className="font-hand text-sm text-mute">review notes</div>
-                <h2 className="mt-1 font-disp text-[1.45rem] leading-none text-ink">학생 리뷰</h2>
-              </div>
-              <div className="rounded-full border border-rule bg-white px-3 py-1 font-hand text-xs text-inkSoft">
-                총 {reviewPage?.totalElements ?? reviews.length}개
-              </div>
-            </div>
-
-            {isReviewsLoading ? (
-              <div className="flex flex-col gap-3">
-                <div className="h-32 rounded-[28px] bg-paperDeep shimmer-bg" />
-                <div className="h-32 rounded-[28px] bg-paperDeep shimmer-bg" />
-              </div>
-            ) : isReviewsError ? (
-              <Card bg="#FFFFFF" style={{ padding: '18px 16px', borderRadius: 28 }}>
-                <p className="font-hand text-sm leading-6 text-red">
-                  리뷰를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.
-                </p>
-              </Card>
-            ) : reviews.length === 0 ? (
-              <Card bg="#FFFFFF" style={{ borderRadius: 28 }}>
-                <EmptyState
-                  title="아직 이 메뉴의 리뷰가 없어요"
-                  description="첫 리뷰의 주인공이 되어보세요"
-                  illKind={illust.kind}
-                  illBg={illust.bg}
+          ) : isReviewsError ? (
+            <Empty icon="soup" title="리뷰를 불러오지 못했습니다" description="잠시 후 다시 시도해주세요" />
+          ) : reviews.length === 0 ? (
+            <Empty
+              icon="soup"
+              title="아직 리뷰가 없어요"
+              description="첫 리뷰의 주인공이 되어보세요"
+              cta={{ label: '리뷰 쓰기', onClick: handleOpenReview }}
+            />
+          ) : (
+            <div className="divide-y divide-g100">
+              {reviews.map((review) => (
+                <ReviewRow
+                  key={review.id}
+                  review={review}
+                  onDelete={handleDelete}
+                  onEdit={handleOpenReview}
+                  isDeleting={deleteMutation.isPending && deleteMutation.variables === review.id}
                 />
-              </Card>
-            ) : (
-              <div className="flex flex-col gap-3">
-                {reviews.map((review) => (
-                  <ReviewCard
-                    key={review.id}
-                    review={review}
-                    onDelete={handleDeleteReview}
-                    onEdit={handleOpenReviewForm}
-                    isDeleting={deleteMutation.isPending && deleteMutation.variables === review.id}
-                  />
-                ))}
-              </div>
-            )}
-          </section>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-rule bg-paper/95 px-4 pb-[calc(env(safe-area-inset-bottom)+16px)] pt-4 backdrop-blur-sm">
-        <div className="mx-auto w-full max-w-[760px]">
-          <button
-            type="button"
-            onClick={handleOpenReviewForm}
-            className="flex w-full items-center justify-center rounded-[18px] border-[1.8px] border-ink bg-ink px-5 py-3.5 font-disp text-base text-paper shadow-flat transition-transform active:scale-[0.99]"
-          >
-            {ctaLabel}
-          </button>
-        </div>
-      </div>
+      {/* 고정 CTA */}
+      <CtaPortal
+        label={myReview ? '리뷰 수정' : '리뷰 작성하기'}
+        onClick={handleOpenReview}
+      />
     </>
+  )
+}
+
+function BackButton({ onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-9 h-9 rounded-full bg-g50 flex items-center justify-center active:bg-g100 transition-colors"
+    >
+      <Icon name="chevL" size={18} color="#191F28" weight={2} />
+    </button>
   )
 }

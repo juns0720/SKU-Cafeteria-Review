@@ -2,314 +2,218 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { getWeeklyMenus } from '../api/menus'
-import Card from '../components/hi/Card'
-import EmptyState from '../components/hi/EmptyState'
-import FoodIllust from '../components/hi/FoodIllust'
-import MedalSticker from '../components/hi/MedalSticker'
-import Pill from '../components/hi/Pill'
-import SecLabel from '../components/hi/SecLabel'
-import Stars from '../components/hi/Stars'
-import WeekDayTabs from '../components/hi/WeekDayTabs'
+import Empty from '../components/coral/Empty'
+import Icon from '../components/coral/Icon'
+import Thumb from '../components/coral/Thumb'
+import WeekPicker from '../components/coral/WeekPicker'
 
-const WEEK_DAYS = [
-  { key: 'MON', shortLabel: '월', fullLabel: '월요일' },
-  { key: 'TUE', shortLabel: '화', fullLabel: '화요일' },
-  { key: 'WED', shortLabel: '수', fullLabel: '수요일' },
-  { key: 'THU', shortLabel: '목', fullLabel: '목요일' },
-  { key: 'FRI', shortLabel: '금', fullLabel: '금요일' },
-]
-const TODAY_KEY_MAP = { 1: 'MON', 2: 'TUE', 3: 'WED', 4: 'THU', 5: 'FRI' }
+const DAY_KEYS = ['MON', 'TUE', 'WED', 'THU', 'FRI']
+const DAY_LABELS = ['월', '화', '수', '목', '금']
 const ORDINAL_LABELS = ['첫째', '둘째', '셋째', '넷째', '다섯째']
 
-function getTodayWeekKey() {
-  return TODAY_KEY_MAP[new Date().getDay()] ?? 'MON'
+// 주의 시작(월요일) Date 계산
+function getWeekStart(base = new Date()) {
+  const d = new Date(base)
+  d.setHours(12, 0, 0, 0)
+  const day = d.getDay()
+  const diff = day === 0 ? -6 : 1 - day
+  d.setDate(d.getDate() + diff)
+  return d
 }
 
-function getTodayDateKey() {
-  const today = new Date()
-  const year = today.getFullYear()
-  const month = String(today.getMonth() + 1).padStart(2, '0')
-  const day = String(today.getDate()).padStart(2, '0')
+// "yyyy-mm-dd" 문자열 → Date (로컬 시간 기준)
+function parseLocalDate(str) {
+  if (!str) return null
+  const m = str.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  if (!m) return null
+  return new Date(+m[1], +m[2] - 1, +m[3], 12)
+}
 
+function formatDate(d) {
+  if (!d) return ''
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
   return `${year}-${month}-${day}`
 }
 
-function toDate(value) {
-  if (!value) {
-    return null
-  }
-
-  if (value instanceof Date) {
-    return Number.isNaN(value.getTime()) ? null : new Date(value)
-  }
-
-  if (typeof value === 'string') {
-    const matched = value.match(/^(\d{4})-(\d{2})-(\d{2})$/)
-    if (matched) {
-      const [, year, month, day] = matched
-      return new Date(Number(year), Number(month) - 1, Number(day), 12)
-    }
-  }
-
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) {
-    return null
-  }
-
-  return date
+// WeekPicker용 days 배열 구성
+function buildPickerDays(weekStartDate) {
+  return DAY_LABELS.map((label, i) => {
+    const d = new Date(weekStartDate)
+    d.setDate(weekStartDate.getDate() + i)
+    return { label, date: d.getDate() }
+  })
 }
 
-function getWeekStartDate(value) {
-  const base = toDate(value) ?? new Date()
-  const result = new Date(base)
-  const day = result.getDay()
-  const diffToMonday = day === 0 ? -6 : 1 - day
-
-  result.setHours(12, 0, 0, 0)
-  result.setDate(result.getDate() + diffToMonday)
-
-  return result
-}
-
-function formatMonthDay(value) {
-  const date = toDate(value)
-  if (!date) {
-    return ''
-  }
-
-  return `${date.getMonth() + 1}/${date.getDate()}`
-}
-
-function getWeekTitle(weekStart) {
-  const date = getWeekStartDate(weekStart)
-  const firstDay = new Date(date.getFullYear(), date.getMonth(), 1)
-  const firstDayOffset = firstDay.getDay()
-  const weekIndex = Math.floor((date.getDate() + firstDayOffset - 1) / 7)
+// "N월 N주차" 레이블
+function getWeekTitle(weekStartDate) {
+  const d = new Date(weekStartDate)
+  const firstDay = new Date(d.getFullYear(), d.getMonth(), 1)
+  const weekIndex = Math.floor((d.getDate() + firstDay.getDay() - 1) / 7)
   const ordinal = ORDINAL_LABELS[weekIndex] ?? `${weekIndex + 1}째`
-
-  return `${date.getMonth() + 1}월 ${ordinal} 주`
+  return `${d.getMonth() + 1}월 ${ordinal} 주`
 }
 
-function buildDayTabs(weekStart) {
-  const startDate = getWeekStartDate(weekStart)
-
-  return WEEK_DAYS.map((day, index) => {
-    const currentDate = new Date(startDate)
-    currentDate.setDate(startDate.getDate() + index)
-
-    return {
-      ...day,
-      displayDate: formatMonthDay(currentDate),
-    }
+// 코너별 그룹핑
+function groupByCorner(menus) {
+  const map = new Map()
+  menus.forEach((menu) => {
+    const c = menu.corner || '기타'
+    if (!map.has(c)) map.set(c, [])
+    map.get(c).push(menu)
   })
+  return Array.from(map.entries()).map(([corner, items]) => ({ corner, items }))
 }
 
-function sortMenus(menus) {
-  return [...menus].sort((left, right) => {
-    const cornerCompare = (left.corner ?? '').localeCompare(right.corner ?? '', 'ko')
-    if (cornerCompare !== 0) {
-      return cornerCompare
-    }
-
-    return left.name.localeCompare(right.name, 'ko')
-  })
+// 오늘이 평일이면 해당 index(0=월), 아니면 0
+function getInitialDayIndex() {
+  const day = new Date().getDay()
+  return day >= 1 && day <= 5 ? day - 1 : 0
 }
 
-function getIllustrationProps(corner) {
-  const normalized = corner?.toLowerCase?.() ?? ''
-
-  if (normalized.includes('한식') || normalized.includes('국')) {
-    return { kind: 'soup', bg: '#FCE3C9' }
-  }
-
-  if (normalized.includes('양식') || normalized.includes('western')) {
-    return { kind: 'bowl', bg: '#FBE6A6' }
-  }
-
-  if (normalized.includes('분식') || normalized.includes('snack')) {
-    return { kind: 'bowl', bg: '#F6C7A8' }
-  }
-
-  if (normalized.includes('일품') || normalized.includes('특식') || normalized.includes('special')) {
-    return { kind: 'chop', bg: '#CDE5C8' }
-  }
-
-  return { kind: 'bowl', bg: '#F4ECDC' }
-}
-
-function WeeklyPageSkeleton() {
+function WeekSkeleton() {
   return (
-    <div className="mx-auto flex w-full max-w-[760px] flex-col gap-4 px-4 py-5 animate-fadeInUp">
-      <div className="h-5 w-28 rounded-full bg-paperDeep shimmer-bg" />
-      <div className="h-10 w-52 rounded-full bg-paperDeep shimmer-bg" />
-      <div className="flex gap-2">
-        {Array.from({ length: 5 }).map((_, index) => (
-          <div key={index} className="h-14 flex-1 rounded-[12px] bg-paperDeep shimmer-bg" />
+    <div className="animate-fadeInUp px-6 pt-2">
+      <div className="h-6 w-32 bg-g100 rounded-full animate-pulse mb-1" />
+      <div className="h-5 w-20 bg-g100 rounded-full animate-pulse mb-4" />
+      <div className="flex gap-1.5 px-[0px] mb-4">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className="flex-1 h-[62px] bg-g100 rounded-2xl animate-pulse" />
         ))}
       </div>
-      <div className="h-6 w-40 rounded-full bg-paperDeep shimmer-bg" />
-      <div className="h-24 rounded-[24px] bg-paperDeep shimmer-bg" />
-      <div className="h-24 rounded-[24px] bg-paperDeep shimmer-bg" />
-      <div className="h-24 rounded-[24px] bg-paperDeep shimmer-bg" />
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="flex items-center gap-3 py-[10px] animate-pulse">
+          <div className="w-12 h-12 bg-g100 rounded-[12px] flex-shrink-0" />
+          <div className="flex-1 space-y-2">
+            <div className="h-4 bg-g100 rounded-full w-28" />
+            <div className="h-3 bg-g100 rounded-full w-16" />
+          </div>
+        </div>
+      ))}
     </div>
   )
 }
 
-function WeeklyMenuRow({ menu, onSelect }) {
-  const illust = getIllustrationProps(menu.corner)
+function MenuRow({ menu, onSelect }) {
   const hasRating = menu.avgOverall != null && (menu.reviewCount ?? 0) > 0
-  const emptyReviewCopy = menu.isNew
-    ? '첫 등장 · 첫 리뷰의 주인공이 되어보세요'
-    : '첫 리뷰의 주인공이 되어보세요'
 
   return (
-    <Card bg="#FFFFFF" style={{ borderRadius: 24 }}>
-      <button
-        type="button"
-        onClick={() => onSelect(menu.id)}
-        className="flex w-full items-center gap-3 p-3 text-left transition-transform active:scale-[0.99]"
-      >
-        <FoodIllust kind={illust.kind} size={50} bg={illust.bg} />
+    <button
+      type="button"
+      onClick={() => onSelect(menu.id)}
+      className="w-full flex items-center gap-3 py-[10px] text-left active:bg-g50 transition-colors"
+    >
+      <Thumb corner={menu.corner} size={48} radius={12} />
 
-        <div className="min-w-0 flex-1">
-          <div className="font-hand text-[11px] text-mute">{menu.corner || '기타'}</div>
-
-          <div className="mt-1 flex items-center gap-2">
-            <div className="truncate font-disp text-[1.05rem] leading-none text-ink">
-              {menu.name}
-            </div>
-
-            {menu.isNew && (
-              <Pill
-                bg="#EF8A3D"
-                color="#FFFFFF"
-                border="#EF8A3D"
-                style={{ fontSize: 10, padding: '1px 7px' }}
-              >
-                NEW
-              </Pill>
-            )}
-          </div>
-
-          {hasRating ? (
-            <div className="mt-2 flex items-center gap-2">
-              <Stars value={menu.avgOverall} size={11} />
-              <span className="font-disp text-sm leading-none text-ink">
-                {menu.avgOverall.toFixed(1)}
-              </span>
-              <span className="font-hand text-[11px] text-mute">리뷰 {menu.reviewCount}</span>
-            </div>
-          ) : (
-            <div className="mt-2 font-hand text-[11px] text-red">{emptyReviewCopy}</div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5">
+          <span className="text-[15px] font-bold tracking-[-0.3px] text-g900 truncate">
+            {menu.name}
+          </span>
+          {menu.isNew && (
+            <span className="flex-shrink-0 text-[10px] font-bold text-coral bg-coralSoft px-1.5 py-px rounded-[4px]">
+              NEW
+            </span>
           )}
         </div>
-
-        <div className="shrink-0 self-start pt-1">
-          <MedalSticker tier={menu.tier} size={26} />
+        <div className="flex items-center gap-1 mt-[3px]">
+          {hasRating ? (
+            <>
+              <Icon name="star" size={11} color="#FF6B5C" />
+              <span className="text-[12.5px] font-bold text-g900">{menu.avgOverall.toFixed(1)}</span>
+              <span className="text-[11px] text-g500">· 리뷰 {menu.reviewCount}</span>
+            </>
+          ) : (
+            <span className="text-[11px] font-medium text-g500">리뷰를 남겨주세요</span>
+          )}
         </div>
-      </button>
-    </Card>
+      </div>
+
+      <Icon name="chevR" size={12} color="#B0B8C1" weight={1.8} />
+    </button>
   )
 }
 
 export default function WeeklyPage() {
   const navigate = useNavigate()
-  const [selectedDayKey, setSelectedDayKey] = useState(getTodayWeekKey)
-  const dateKey = getTodayDateKey()
-  const {
-    data,
-    isLoading,
-    isError,
-  } = useQuery({
+  const [activeIndex, setActiveIndex] = useState(getInitialDayIndex)
+
+  const weekStart = getWeekStart()
+  const dateKey = formatDate(weekStart)
+
+  const { data, isLoading, isError } = useQuery({
     queryKey: ['menus', 'weekly', dateKey],
     queryFn: () => getWeeklyMenus(dateKey),
   })
 
-  const dayTabs = buildDayTabs(data?.weekStart)
-  const activeIndex = Math.max(
-    dayTabs.findIndex((day) => day.key === selectedDayKey),
-    0
-  )
-  const activeDay = dayTabs[activeIndex] ?? dayTabs[0]
-  const selectedMenus = sortMenus(data?.days?.[activeDay?.key] ?? [])
-  const weekTitle = getWeekTitle(data?.weekStart)
-  const weekRangeLabel = data?.weekStart && data?.weekEnd
-    ? `${formatMonthDay(data.weekStart)} - ${formatMonthDay(data.weekEnd)}`
-    : ''
-  const handleMenuSelect = (menuId) => navigate(`/menus/${menuId}`)
+  // 서버가 weekStart를 반환하면 우선 사용, 없으면 클라이언트 계산값
+  const resolvedWeekStart = parseLocalDate(data?.weekStart) ?? weekStart
+  const pickerDays = buildPickerDays(resolvedWeekStart)
+  const weekTitle = getWeekTitle(resolvedWeekStart)
 
-  if (isLoading) {
-    return <WeeklyPageSkeleton />
-  }
+  const selectedDayKey = DAY_KEYS[activeIndex]
+  const dayMenus = data?.days?.[selectedDayKey] ?? []
+  const cornerGroups = groupByCorner(dayMenus)
+
+  const handleMenuSelect = (id) => navigate(`/menus/${id}`)
+
+  if (isLoading) return <WeekSkeleton />
 
   return (
     <div className="animate-fadeInUp">
-      <div className="mx-auto flex w-full max-w-[760px] flex-col gap-4 px-4 py-5">
+      {/* 헤더 */}
+      <div className="px-6 pt-2 pb-4 flex items-center justify-between">
         <div>
-          <div className="font-hand text-sm text-green">{weekTitle}</div>
-          <h1 className="mt-1 font-disp text-[2rem] leading-none text-ink">
-            이번 주 <span className="underline decoration-green decoration-[6px] underline-offset-[6px]">식단</span>
-          </h1>
-          {weekRangeLabel && (
-            <p className="mt-3 font-hand text-sm text-inkSoft">{weekRangeLabel}</p>
-          )}
+          <div className="text-[22px] font-extrabold tracking-[-0.6px] text-g900">주간 식단</div>
+          <div className="text-[13px] font-semibold text-g600 mt-0.5">{weekTitle}</div>
         </div>
+      </div>
 
-        <WeekDayTabs
-          days={dayTabs.map((day) => ({
-            day: day.shortLabel,
-            date: day.displayDate,
-          }))}
-          activeIndex={activeIndex}
-          onChange={(nextIndex) => setSelectedDayKey(dayTabs[nextIndex]?.key ?? selectedDayKey)}
-        />
+      {/* 요일 Picker */}
+      <WeekPicker
+        days={pickerDays}
+        activeIndex={activeIndex}
+        onSelect={setActiveIndex}
+      />
 
-        <section>
-          <SecLabel
-            right={(
-              <span className="inline-flex items-center gap-1.5 font-hand text-[11px] text-mute">
-                <Pill
-                  bg="#EF8A3D"
-                  color="#FFFFFF"
-                  border="#EF8A3D"
-                  style={{ fontSize: 9, padding: '0 5px' }}
-                >
-                  NEW
-                </Pill>
-                = 처음 등장
-              </span>
-            )}
-          >
-            {activeDay ? `${activeDay.fullLabel} · 중식` : '이번 주 · 중식'}
-          </SecLabel>
-
-          {isError ? (
-            <Card bg="#FFFFFF" style={{ padding: '18px 16px', borderRadius: 24 }}>
-              <p className="font-hand text-sm leading-6 text-red">
-                이번 주 메뉴를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.
-              </p>
-            </Card>
-          ) : selectedMenus.length === 0 ? (
-            <Card bg="#FFFFFF" style={{ borderRadius: 24 }}>
-              <EmptyState
-                title="선택한 요일의 메뉴가 아직 없어요"
-                description="식단이 올라오면 여기에서 바로 확인할 수 있어요."
-                illKind="bowl"
-                illBg="#FCE3C9"
-              />
-            </Card>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {selectedMenus.map((menu) => (
-                <WeeklyMenuRow
-                  key={`${activeDay.key}-${menu.id}`}
-                  menu={menu}
-                  onSelect={handleMenuSelect}
-                />
-              ))}
-            </div>
-          )}
-        </section>
+      {/* 메뉴 리스트 */}
+      <div className="px-6 mt-4">
+        {isError ? (
+          <Empty
+            icon="bowl"
+            title="메뉴를 불러오지 못했습니다"
+            description="잠시 후 다시 시도해주세요"
+          />
+        ) : dayMenus.length === 0 ? (
+          <Empty
+            icon="bowl"
+            title="이 날 식단이 등록되지 않았어요"
+            description="매주 월요일 아침에 업데이트됩니다"
+          />
+        ) : (
+          <div>
+            {cornerGroups.map(({ corner, items }) => (
+              <div key={corner} className="mb-[18px]">
+                {/* 코너 헤더 */}
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-[14px] font-extrabold tracking-[-0.3px] text-g900">{corner}</span>
+                  <span className="text-[12px] text-g500">{items.length}</span>
+                </div>
+                {/* 메뉴 rows — hairline 구분 */}
+                <div className="divide-y divide-g100">
+                  {items.map((menu) => (
+                    <MenuRow
+                      key={menu.id}
+                      menu={menu}
+                      onSelect={handleMenuSelect}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

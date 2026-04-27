@@ -31,16 +31,16 @@
 
 ## Phase v3-2 — 페이지 재작성 (9화면)
 
-- [ ] **V3-T7**: `LoginPage` (`/login`) — 카테고리 일러스트 컬러 유지 (예외)
-- [ ] **V3-T8**: `NicknameSetupModal` (App 조건부) — 닫기 불가, 추천 칩 5개, 가용성 체크
-- [ ] **V3-T9**: `HomePage` (`/`) — `BestRow` + 오늘 메뉴 코너별 리스트
-- [ ] **V3-T10**: `WeeklyPage` (`/weekly`) — `WeekPicker` + 요일별 코너 리스트
-- [ ] **V3-T11**: `AllMenusPage` (`/menus`) — 검색 + `CategoryFilter` + 정렬 + `MedalDot`
-- [ ] **V3-T12**: `MenuDetailPage` (`/menus/:id`) — 모달→풀스크린, 3축 `AxisProgress` + 리뷰 리스트
-- [ ] **V3-T13**: `ReviewWritePage` (`/menus/:id/review`) — `MultiStarInput` 3축 + textarea
-- [ ] **V3-T14**: `ProfilePage` (`/profile`) — 아바타 + `ProgressBar` + `StatsGrid` + 내 리뷰
-- [ ] **V3-T15**: `EmptyState` 통합 — Home/Weekly/AllMenus/Profile/MenuDetail 빈 상태에 `Empty` 적용
-- [ ] **V3-T16**: `App.jsx` 라우터 정리 — hi/ import 제거, coral/ 페이지로 교체
+- [x] **V3-T7**: `LoginPage` (`/login`) — 카테고리 일러스트 컬러 유지 (예외)
+- [x] **V3-T8**: `NicknameSetupModal` (App 조건부) — 닫기 불가, 추천 칩 5개, 가용성 체크
+- [x] **V3-T9**: `HomePage` (`/`) — `BestRow` + 오늘 메뉴 코너별 리스트
+- [x] **V3-T10**: `WeeklyPage` (`/weekly`) — `WeekPicker` + 요일별 코너 리스트
+- [x] **V3-T11**: `AllMenusPage` (`/menus`) — 검색 + `CategoryFilter` + 정렬 + `MedalDot`
+- [x] **V3-T12**: `MenuDetailPage` (`/menus/:id`) — 모달→풀스크린, 3축 `AxisProgress` + 리뷰 리스트
+- [x] **V3-T13**: `ReviewWritePage` (`/menus/:id/review`) — `MultiStarInput` 3축 + textarea
+- [x] **V3-T14**: `ProfilePage` (`/profile`) — 아바타 + `ProgressBar` + `StatsGrid` + 내 리뷰
+- [x] **V3-T15**: `EmptyState` 통합 — Home/Weekly/AllMenus/Profile/MenuDetail 빈 상태에 `Empty` 적용
+- [x] **V3-T16**: `App.jsx` 라우터 정리 — hi/ import 제거, coral/ 페이지로 교체
 
 > **Phase v3-2 게이트**: 9화면 라우팅 + 새 디자인 적용 + `npm run build` + 375/768/1280 수동 → Phase v3-3 진입.
 

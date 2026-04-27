@@ -2,65 +2,42 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { getMyReviews } from '../api/reviews'
+import Empty from '../components/coral/Empty'
+import Icon from '../components/coral/Icon'
+import NicknameSetupModal from '../components/coral/NicknameSetupModal'
+import ProgressBar from '../components/coral/ProgressBar'
+import Stars from '../components/coral/Stars'
+import StatsGrid from '../components/coral/StatsGrid'
+import Thumb from '../components/coral/Thumb'
 import useAuth from '../hooks/useAuth'
-import BadgeProgressBar from '../components/hi/BadgeProgressBar'
-import Card from '../components/hi/Card'
-import EmptyState from '../components/hi/EmptyState'
-import Icon from '../components/hi/Icon'
-import MultiStarSummary from '../components/hi/MultiStarSummary'
-import NicknameSetupModal from '../components/hi/NicknameSetupModal'
-import StatsGrid from '../components/hi/StatsGrid'
 
-const MY_REVIEWS_QUERY_KEY = ['reviews', 'me']
-const BADGE_META = {
-  NONE: { emoji: '🌱', label: '시작 전', tone: '#F4ECDC' },
-  BRONZE: { emoji: '🥉', label: '브론즈', tone: '#FCE3C9' },
-  SILVER: { emoji: '🥈', label: '실버', tone: '#F4ECDC' },
-  GOLD: { emoji: '🥇', label: '골드', tone: '#FBE6A6' },
-}
-
-function formatAverageRating(avgRating) {
-  return avgRating == null ? '-' : Number(avgRating).toFixed(1)
-}
+const BADGE_EMOJI = { NONE: '', BRONZE: '🥉', SILVER: '🥈', GOLD: '🥇' }
+const BADGE_NEXT_LABEL = { NONE: '🥉 브론즈', BRONZE: '🥈 실버', SILVER: '🥇 골드', GOLD: '🥇 골드' }
 
 function formatReviewDate(value) {
-  if (!value) {
-    return ''
-  }
-
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) {
-    return ''
-  }
-
-  return `${date.getMonth() + 1}.${date.getDate()} 작성`
-}
-
-function getProgressCopy(user) {
-  if (!user) {
-    return ''
-  }
-
-  const remaining = Math.max(user.remaining ?? 0, 0)
-  if (remaining === 0) {
-    return '지금 뱃지를 유지하고 있어요'
-  }
-
-  if (user.badgeTier === 'GOLD') {
-    return `다음 목표까지 ${remaining}개 남았어요`
-  }
-
-  return `다음 뱃지까지 ${remaining}개 남았어요`
+  if (!value) return ''
+  const d = new Date(value)
+  if (isNaN(d.getTime())) return ''
+  return `${d.getMonth() + 1}/${d.getDate()}`
 }
 
 function ProfileSkeleton() {
   return (
-    <div className="mx-auto flex w-full max-w-[760px] flex-col gap-4 px-4 py-5 animate-fadeInUp">
-      <div className="h-8 w-24 rounded-full bg-paperDeep shimmer-bg" />
-      <div className="h-40 rounded-[28px] bg-paperDeep shimmer-bg" />
-      <div className="h-24 rounded-[28px] bg-paperDeep shimmer-bg" />
-      <div className="h-28 rounded-[28px] bg-paperDeep shimmer-bg" />
-      <div className="h-44 rounded-[28px] bg-paperDeep shimmer-bg" />
+    <div className="animate-fadeInUp px-6 pt-2">
+      <div className="h-7 w-16 bg-g100 rounded-full animate-pulse mb-4" />
+      <div className="h-[88px] rounded-[18px] bg-g100 animate-pulse mb-3" />
+      <div className="h-[76px] rounded-[14px] bg-g100 animate-pulse mb-3" />
+      <div className="h-[76px] rounded-[14px] bg-g100 animate-pulse mb-5" />
+      <div className="h-4 w-20 bg-g100 rounded-full animate-pulse mb-3" />
+      {[1, 2].map((i) => (
+        <div key={i} className="flex gap-3 py-[11px] animate-pulse">
+          <div className="w-11 h-11 rounded-[11px] bg-g100 flex-shrink-0" />
+          <div className="flex-1 space-y-2">
+            <div className="h-4 w-28 bg-g100 rounded-full" />
+            <div className="h-3 w-20 bg-g100 rounded-full" />
+          </div>
+        </div>
+      ))}
     </div>
   )
 }
@@ -69,23 +46,25 @@ export default function ProfilePage() {
   const navigate = useNavigate()
   const { user, logout } = useAuth()
   const [isNicknameEditOpen, setIsNicknameEditOpen] = useState(false)
-  const { data: myReviews = [], isLoading, isError } = useQuery({
-    queryKey: MY_REVIEWS_QUERY_KEY,
+
+  const { data: myReviews = [], isLoading: isReviewsLoading, isError: isReviewsError } = useQuery({
+    queryKey: ['reviews', 'me'],
     queryFn: getMyReviews,
     enabled: Boolean(user),
   })
 
-  if (!user) {
-    return <ProfileSkeleton />
-  }
+  if (!user) return <ProfileSkeleton />
 
-  const badgeMeta = BADGE_META[user.badgeTier] ?? BADGE_META.NONE
-  const progressMax = Math.max(user.nextTarget ?? 1, 1)
-  const progressCurrent = Math.max(progressMax - (user.remaining ?? progressMax), 0)
-  const stats = [
-    { value: user.reviewCount ?? 0, label: '리뷰', bg: '#FCE3C9' },
-    { value: formatAverageRating(user.avgRating), label: '평점', bg: '#FBE6A6' },
-    { value: user.badgeCount ?? 0, label: '메달', bg: '#CDE5C8' },
+  const badgeEmoji = BADGE_EMOJI[user.badgeTier] ?? ''
+  const nextTierLabel = BADGE_NEXT_LABEL[user.badgeTier] ?? '🥇 골드'
+  const isGold = user.badgeTier === 'GOLD'
+  const progressTarget = Math.max(user.nextTarget ?? 1, 1)
+  const progressCurrent = Math.max(progressTarget - (user.remaining ?? progressTarget), 0)
+
+  const statsItems = [
+    { value: user.reviewCount ?? 0, label: '리뷰' },
+    { value: user.avgRating != null ? Number(user.avgRating).toFixed(1) : '-', label: '평균 별점' },
+    { value: user.badgeCount ?? 0, label: '뱃지' },
   ]
 
   const handleLogout = () => {
@@ -95,150 +74,134 @@ export default function ProfilePage() {
 
   return (
     <>
-      <div className="mx-auto flex w-full max-w-[760px] flex-col gap-4 px-4 py-5 animate-fadeInUp">
-        <div>
-          <div className="font-hand text-sm text-mute">마이 페이지</div>
-          <h1 className="mt-1 font-disp text-[2rem] leading-none text-ink">프로필</h1>
+      <div className="animate-fadeInUp pb-6">
+        {/* 헤더 */}
+        <div className="px-6 pt-2 pb-4 flex items-center justify-between flex-shrink-0">
+          <div className="text-[22px] font-extrabold tracking-[-0.6px] text-g900">프로필</div>
+          <Icon name="gear" size={22} color="#4E5968" weight={1.7} />
         </div>
 
-        <Card bg="#FFFFFF" style={{ padding: '20px 20px 18px' }}>
-          <div className="flex items-start gap-4">
+        <div className="px-6">
+          {/* 프로필 카드 */}
+          <button
+            type="button"
+            onClick={() => setIsNicknameEditOpen(true)}
+            className="w-full flex items-center gap-3.5 p-4 rounded-[18px] bg-g50 active:bg-g100 transition-colors text-left"
+          >
             <div
-              className="mt-1 h-16 w-16 shrink-0 rounded-full border-[1.5px] border-ink shadow-card"
-              style={{ backgroundColor: user.avatarColor ?? '#EF8A3D' }}
-            />
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <div className="truncate font-user text-[1.75rem] leading-none text-ink">
+              className="w-[60px] h-[60px] rounded-full flex-shrink-0 flex items-center justify-center text-[24px] font-extrabold text-white tracking-[-1px]"
+              style={{ backgroundColor: user.avatarColor ?? '#B0B8C1' }}
+            >
+              {user.nickname?.[0] ?? '?'}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[18px] font-extrabold tracking-[-0.3px] text-g900 truncate">
                   {user.nickname}
-                </div>
-                <button
-                  type="button"
-                  aria-label="닉네임 수정"
-                  onClick={() => setIsNicknameEditOpen(true)}
-                  className="rounded-full border border-rule bg-paper p-2 text-ink transition-transform active:scale-[0.97]"
-                >
-                  <Icon name="pencil" size={15} color="#574635" />
-                </button>
+                </span>
+                {badgeEmoji && <span className="text-[14px] flex-shrink-0">{badgeEmoji}</span>}
               </div>
-
-              <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-rule px-3 py-1.5 font-hand text-sm text-inkSoft">
-                <span aria-hidden>{badgeMeta.emoji}</span>
-                <span className="font-disp text-base text-ink">{badgeMeta.label}</span>
-              </div>
-
-              <p className="mt-3 font-hand text-sm leading-5 text-mute">
-                {getProgressCopy(user)}
-              </p>
-            </div>
-          </div>
-        </Card>
-
-        <Card bg={badgeMeta.tone} style={{ padding: '16px 18px' }}>
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <div>
-              <div className="font-hand text-sm text-inkSoft">다음 단계 진행도</div>
-              <div className="mt-1 font-disp text-lg text-ink">
-                {progressCurrent} / {progressMax}
+              <div className="text-[12px] font-medium text-g600 mt-0.5">
+                작성 리뷰 {user.reviewCount ?? 0}개
               </div>
             </div>
-            <div className="rounded-full border border-rule bg-white px-3 py-1 font-hand text-xs text-mute">
-              목표 {progressMax}개
-            </div>
-          </div>
-          <BadgeProgressBar
-            current={progressCurrent}
-            max={progressMax}
-            color={user.avatarColor ?? '#EF8A3D'}
-          />
-        </Card>
+            <Icon name="chevR" size={14} color="#B0B8C1" weight={1.8} />
+          </button>
 
-        <section>
-          <div className="mb-3 font-hand text-sm text-mute">한눈에 보는 기록</div>
-          <StatsGrid stats={stats} />
-        </section>
-
-        <section>
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <div>
-              <div className="font-hand text-sm text-mute">최근 활동</div>
-              <h2 className="mt-1 font-disp text-[1.5rem] leading-none text-ink">
-                내가 쓴 리뷰
-              </h2>
-            </div>
-            <div className="rounded-full border border-rule px-3 py-1 font-hand text-xs text-inkSoft">
-              총 {myReviews.length}개
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-3">
-            {isLoading ? (
-              <>
-                <div className="h-32 rounded-[24px] bg-paperDeep shimmer-bg" />
-                <div className="h-32 rounded-[24px] bg-paperDeep shimmer-bg" />
-              </>
-            ) : isError ? (
-              <Card bg="#FFFFFF" style={{ padding: '18px 18px 16px' }}>
-                <p className="font-hand text-sm leading-6 text-red">
-                  내 리뷰를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.
-                </p>
-              </Card>
-            ) : myReviews.length === 0 ? (
-              <Card bg="#FFFFFF" style={{ padding: '8px 0' }}>
-                <EmptyState
-                  title="아직 작성한 리뷰가 없어요"
-                  description="첫 리뷰의 주인공이 되어보세요"
-                  illKind="bowl"
-                  illBg="#FBE6A6"
-                />
-              </Card>
+          {/* 진행도 */}
+          <div className="mt-3">
+            {isGold ? (
+              <div className="p-3.5 rounded-[14px] bg-g50 text-[13px] font-semibold text-g700 text-center">
+                🥇 최고 등급 골드입니다!
+              </div>
             ) : (
-              myReviews.map((review) => (
-                <Card key={review.id} bg="#FFFFFF" style={{ padding: '16px 16px 14px' }}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="truncate font-disp text-[1.1rem] leading-none text-ink">
-                        {review.menuName}
-                      </div>
-                      <div className="mt-2 font-hand text-xs text-mute">
-                        {formatReviewDate(review.createdAt)}
-                      </div>
-                    </div>
-                    <div className="rounded-full border border-rule bg-paper px-2.5 py-1 font-hand text-xs text-inkSoft">
-                      평균 {Number(review.overall).toFixed(1)}
-                    </div>
-                  </div>
-
-                  <div className="mt-4">
-                    <MultiStarSummary
-                      taste={review.taste}
-                      amount={review.amount}
-                      value={review.value}
-                    />
-                  </div>
-
-                  <p className="mt-3 whitespace-pre-line font-hand text-sm leading-6 text-inkSoft">
-                    {review.comment?.trim() || '한 마디는 비워뒀어요'}
-                  </p>
-
-                  {review.photoUrls?.length > 0 && (
-                    <div className="mt-3 inline-flex rounded-full border border-rule bg-greenSoft px-2.5 py-1 font-hand text-xs text-inkSoft">
-                      사진 {review.photoUrls.length}장
-                    </div>
-                  )}
-                </Card>
-              ))
+              <ProgressBar
+                current={progressCurrent}
+                target={progressTarget}
+                nextTierLabel={nextTierLabel}
+                remaining={user.remaining ?? 0}
+              />
             )}
           </div>
-        </section>
 
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="mt-2 w-full rounded-[14px] border-[1.8px] border-ink bg-paper px-5 py-3 font-disp text-base text-ink shadow-flat transition-transform active:scale-[0.99]"
-        >
-          로그아웃
-        </button>
+          {/* 통계 */}
+          <div className="mt-3">
+            <StatsGrid items={statsItems} />
+          </div>
+
+          {/* 내 리뷰 */}
+          <div className="mt-[22px]">
+            <div className="flex items-baseline justify-between mb-2.5">
+              <span className="text-[16px] font-extrabold tracking-[-0.4px] text-g900">내가 쓴 리뷰</span>
+              <span className="text-[13px] font-semibold text-g600">전체 {myReviews.length}</span>
+            </div>
+
+            {isReviewsLoading ? (
+              <div>
+                {[1, 2].map((i) => (
+                  <div key={i} className="flex gap-3 py-[11px] animate-pulse">
+                    <div className="w-11 h-11 rounded-[11px] bg-g100 flex-shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 w-28 bg-g100 rounded-full" />
+                      <div className="h-3 w-20 bg-g100 rounded-full" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : isReviewsError ? (
+              <div className="p-5 rounded-2xl bg-g50 text-[13px] text-g500 text-center">
+                리뷰를 불러오지 못했습니다
+              </div>
+            ) : myReviews.length === 0 ? (
+              <Empty
+                icon="bowl"
+                title="아직 작성한 리뷰가 없어요"
+                description="첫 리뷰의 주인공이 되어보세요"
+                cta={{ label: '리뷰 쓸 메뉴 찾기', onClick: () => navigate('/menus') }}
+              />
+            ) : (
+              <div className="divide-y divide-g100">
+                {myReviews.map((review) => (
+                  <button
+                    key={review.id}
+                    type="button"
+                    onClick={() => navigate(`/menus/${review.menuId}/review`)}
+                    className="w-full flex items-center gap-3 py-[11px] text-left active:bg-g50 transition-colors"
+                  >
+                    <Thumb corner={review.menuCorner ?? review.corner} size={44} radius={11} />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[14.5px] font-bold tracking-[-0.3px] text-g900 truncate">
+                          {review.menuName ?? `메뉴 #${review.menuId}`}
+                        </span>
+                        <span className="text-[11px] text-g500 flex-shrink-0">
+                          {formatReviewDate(review.createdAt)}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1 mt-[3px]">
+                        <Stars value={review.overallRating ?? 0} size={11} />
+                        {(review.menuCorner ?? review.corner) && (
+                          <span className="text-[11px] text-g500 ml-1">
+                            {review.menuCorner ?? review.corner}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* 로그아웃 */}
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="mt-6 w-full py-3.5 rounded-[14px] bg-g50 text-[15px] font-semibold text-g700 active:bg-g100 transition-colors"
+          >
+            로그아웃
+          </button>
+        </div>
       </div>
 
       {isNicknameEditOpen && (
