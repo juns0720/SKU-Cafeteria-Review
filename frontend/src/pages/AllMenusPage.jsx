@@ -1,7 +1,7 @@
 import { useDeferredValue, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { getAllMenus } from '../api/menus'
+import { getAllMenus, getCorners } from '../api/menus'
 import CategoryFilter from '../components/coral/CategoryFilter'
 import Empty from '../components/coral/Empty'
 import Icon from '../components/coral/Icon'
@@ -14,19 +14,6 @@ const SORT_OPTIONS = [
   { key: 'date',        label: '최신순' },
 ]
 
-const FIXED_CORNERS = ['전체', '한식', '양식', '일품', '분식', '중식']
-
-function buildCornerList(menus) {
-  const seen = new Set(FIXED_CORNERS)
-  const extras = []
-  menus.forEach((m) => {
-    if (m.corner && !seen.has(m.corner)) {
-      seen.add(m.corner)
-      extras.push(m.corner)
-    }
-  })
-  return [...FIXED_CORNERS, ...extras]
-}
 
 function filterByQuery(menus, query) {
   const q = query.trim().toLowerCase()
@@ -135,8 +122,12 @@ export default function AllMenusPage() {
     queryKey: ['menus', 'all', { corner: selectedCorner ?? 'ALL', sort, scope: 'all' }],
     queryFn: () => getAllMenus({ corner: selectedCorner, sort, scope: 'all' }),
   })
+  const { data: cornersData = [] } = useQuery({
+    queryKey: ['menus', 'corners'],
+    queryFn: getCorners,
+  })
 
-  const cornerList = buildCornerList(menus)
+  const cornerList = ['전체', ...cornersData]
   const filtered = filterByQuery(menus, deferredQuery)
   const isSearching = deferredQuery.trim().length > 0
 
