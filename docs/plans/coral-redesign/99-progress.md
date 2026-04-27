@@ -23,7 +23,7 @@
 - [x] **V3-T3**: `components/coral/Icon.jsx` (17 SVG path)
 - [x] **V3-T4**: 기본 컴포넌트 9종 — `Frame` / `Status` / `Header` / `Stars` / `Chip` / `Sec` / `Thumb` (corner→illustration 매핑) / `Button` / `Tab`
 - [x] **V3-T5**: 컴포지트 10종 — `BestRow` / `WeekPicker` / `CategoryFilter` / `MedalDot` / `MultiStarInput` / `MultiStarSummary` / `ProgressBar` / `StatsGrid` / `Empty` / `AxisProgress`
-- [ ] **V3-T6**: `/dev/components` 카탈로그에 Coral 섹션 추가
+- [x] **V3-T6**: `/dev/components` 카탈로그에 Coral 섹션 추가
 
 > **Phase v3-1 게이트**: `/dev/components`에서 19개 컴포넌트 + 21 아이콘 + 컬러/타이포 시각 확인 (375/768/1280) + `npm run build` → Phase v3-2 진입.
 
