@@ -2,17 +2,16 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { GoogleOAuthProvider } from '@react-oauth/google'
 import { createPortal } from 'react-dom'
-import Header from './components/Header'
 import AllMenusPage from './pages/AllMenusPage'
-import HomePage from './pages/HomePage'
 import DevComponentsPage from './pages/DevComponentsPage'
+import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
 import MenuDetailPage from './pages/MenuDetailPage'
 import ProfilePage from './pages/ProfilePage'
 import ReviewWritePage from './pages/ReviewWritePage'
 import WeeklyPage from './pages/WeeklyPage'
 import NicknameSetupModal from './components/coral/NicknameSetupModal'
-import TabBarHi from './components/hi/TabBarHi'
+import Tab from './components/coral/Tab'
 import useAuth from './hooks/useAuth'
 import useToast from './hooks/useToast.jsx'
 
@@ -22,41 +21,22 @@ const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 1000 * 60 } },
 })
 
-const TAB_ROUTE_MAP = {
-  home: '/',
-  week: '/weekly',
-  all: '/menus',
-  me: '/profile',
-}
-
 function getActiveTab(pathname) {
-  if (pathname.startsWith('/weekly')) {
-    return 'week'
-  }
-
-  if (pathname.startsWith('/menus') || pathname.startsWith('/reviews')) {
-    return 'all'
-  }
-
-  if (pathname.startsWith('/profile') || pathname.startsWith('/my-reviews')) {
-    return 'me'
-  }
-
+  if (pathname.startsWith('/weekly')) return 'week'
+  if (pathname.startsWith('/menus') || pathname.startsWith('/reviews')) return 'all'
+  if (pathname.startsWith('/profile') || pathname.startsWith('/my-reviews')) return 'me'
   return 'home'
 }
 
-function TabBarPortal({ activeTab, onTabChange }) {
-  if (typeof document === 'undefined') {
-    return null
-  }
-
+function TabBarPortal({ current }) {
+  if (typeof document === 'undefined') return null
   return createPortal(
     <nav
       className="fixed bottom-0 left-0 right-0 z-[60]"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       <div className="mx-auto max-w-[1100px]">
-        <TabBarHi active={activeTab} onTabChange={onTabChange} />
+        <Tab current={current} />
       </div>
     </nav>,
     document.body
@@ -64,15 +44,13 @@ function TabBarPortal({ activeTab, onTabChange }) {
 }
 
 function AppInner() {
-  const { user, isLoggedIn, login, logout } = useAuth()
+  const { user, isLoggedIn, login } = useAuth()
   const { showToast, ToastComponent } = useToast()
   const location = useLocation()
   const navigate = useNavigate()
-  const isHomeRoute = location.pathname === '/'
   const isLoginRoute = location.pathname === '/login'
   const isDevRoute = location.pathname === '/dev/components'
   const isMenuSubRoute = /^\/menus\/[^/]+(?:\/.*)?$/.test(location.pathname)
-  const showHeader = !isLoginRoute && !isHomeRoute && !isMenuSubRoute && (isLoggedIn || isDevRoute)
   const showBottomNav = !isLoginRoute && !isDevRoute && !isMenuSubRoute && isLoggedIn
   const isNicknameModalOpen = isLoggedIn && !isLoginRoute && user?.isNicknameSet === false
   const activeTab = getActiveTab(location.pathname)
@@ -82,11 +60,9 @@ function AppInner() {
       showToast('Google 로그인 정보를 가져오지 못했습니다', 'error')
       return
     }
-
     try {
       await login(credential)
       showToast('로그인 되었습니다', 'success')
-
       if (location.pathname === '/login') {
         navigate('/', { replace: true })
       }
@@ -95,72 +71,29 @@ function AppInner() {
     }
   }
 
-  const handleLogout = () => {
-    logout()
-    showToast('로그아웃 되었습니다', 'success')
-    navigate('/login', { replace: true })
-  }
-
-  const handleTabChange = (nextTab) => {
-    const nextPath = TAB_ROUTE_MAP[nextTab]
-    if (!nextPath || nextPath === location.pathname) {
-      return
-    }
-
-    navigate(nextPath)
-  }
-
-  const routes = (
-    <Routes>
-      <Route
-        path="/login"
-        element={
-          isLoggedIn ? (
-            <Navigate to="/" replace />
-          ) : (
-            <LoginPage onLoginSuccess={handleLoginSuccess} />
-          )
-        }
-      />
-      <Route path="/" element={isLoggedIn ? <HomePage /> : <Navigate to="/login" replace />} />
-      <Route path="/weekly" element={isLoggedIn ? <WeeklyPage /> : <Navigate to="/login" replace />} />
-      <Route path="/menus" element={isLoggedIn ? <AllMenusPage /> : <Navigate to="/login" replace />} />
-      <Route path="/menus/:id" element={isLoggedIn ? <MenuDetailPage /> : <Navigate to="/login" replace />} />
-      <Route path="/menus/:id/review" element={isLoggedIn ? <ReviewWritePage /> : <Navigate to="/login" replace />} />
-      <Route path="/reviews" element={<Navigate to={isLoggedIn ? '/menus' : '/login'} replace />} />
-      <Route path="/profile" element={isLoggedIn ? <ProfilePage /> : <Navigate to="/login" replace />} />
-      <Route path="/my-reviews" element={<Navigate to="/profile" replace />} />
-      <Route path="/dev/components" element={<DevComponentsPage />} />
-      <Route path="*" element={<Navigate to={isLoggedIn ? '/' : '/login'} replace />} />
-    </Routes>
-  )
-
   return (
     <>
       {ToastComponent}
-      {showHeader && (
-        <Header
-          user={user}
-          isLoggedIn={isLoggedIn}
-          onLoginSuccess={handleLoginSuccess}
-          onLogout={handleLogout}
-        />
-      )}
-      {isLoginRoute ? (
-        routes
-      ) : (
-        <main
-          className={`${showHeader ? 'pt-14' : 'pt-0'} ${showBottomNav ? 'pb-24' : 'pb-0'} max-w-[1100px] mx-auto w-full`}
-        >
-          {routes}
-        </main>
-      )}
-      {showBottomNav && (
-        <TabBarPortal activeTab={activeTab} onTabChange={handleTabChange} />
-      )}
-      {isNicknameModalOpen && (
-        <NicknameSetupModal onClose={() => {}} />
-      )}
+      <main className={`${showBottomNav ? 'pb-16' : 'pb-0'} max-w-[1100px] mx-auto w-full`}>
+        <Routes>
+          <Route
+            path="/login"
+            element={isLoggedIn ? <Navigate to="/" replace /> : <LoginPage onLoginSuccess={handleLoginSuccess} />}
+          />
+          <Route path="/" element={isLoggedIn ? <HomePage /> : <Navigate to="/login" replace />} />
+          <Route path="/weekly" element={isLoggedIn ? <WeeklyPage /> : <Navigate to="/login" replace />} />
+          <Route path="/menus" element={isLoggedIn ? <AllMenusPage /> : <Navigate to="/login" replace />} />
+          <Route path="/menus/:id" element={isLoggedIn ? <MenuDetailPage /> : <Navigate to="/login" replace />} />
+          <Route path="/menus/:id/review" element={isLoggedIn ? <ReviewWritePage /> : <Navigate to="/login" replace />} />
+          <Route path="/profile" element={isLoggedIn ? <ProfilePage /> : <Navigate to="/login" replace />} />
+          <Route path="/reviews" element={<Navigate to={isLoggedIn ? '/menus' : '/login'} replace />} />
+          <Route path="/my-reviews" element={<Navigate to="/profile" replace />} />
+          <Route path="/dev/components" element={<DevComponentsPage />} />
+          <Route path="*" element={<Navigate to={isLoggedIn ? '/' : '/login'} replace />} />
+        </Routes>
+      </main>
+      {showBottomNav && <TabBarPortal current={activeTab} />}
+      {isNicknameModalOpen && <NicknameSetupModal onClose={() => {}} />}
     </>
   )
 }

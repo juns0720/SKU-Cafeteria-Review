@@ -40,7 +40,7 @@
 - [x] **V3-T13**: `ReviewWritePage` (`/menus/:id/review`) — `MultiStarInput` 3축 + textarea
 - [x] **V3-T14**: `ProfilePage` (`/profile`) — 아바타 + `ProgressBar` + `StatsGrid` + 내 리뷰
 - [x] **V3-T15**: `EmptyState` 통합 — Home/Weekly/AllMenus/Profile/MenuDetail 빈 상태에 `Empty` 적용
-- [ ] **V3-T16**: `App.jsx` 라우터 정리 — hi/ import 제거, coral/ 페이지로 교체
+- [x] **V3-T16**: `App.jsx` 라우터 정리 — hi/ import 제거, coral/ 페이지로 교체
 
 > **Phase v3-2 게이트**: 9화면 라우팅 + 새 디자인 적용 + `npm run build` + 375/768/1280 수동 → Phase v3-3 진입.
 
