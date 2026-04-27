@@ -17,12 +17,21 @@ export default function useAuth() {
     return () => window.removeEventListener('storage', handleStorage)
   }, [])
 
-  const { data: user } = useQuery({
+  const { data: user, isError } = useQuery({
     queryKey: AUTH_ME_QUERY_KEY,
     queryFn: () => getMe().then((res) => res.data),
     enabled: Boolean(accessToken),
     retry: false,
   })
+
+  // getMe() 실패 시 (만료 토큰 / 네트워크 오류) → 토큰 제거, 로그아웃 처리
+  useEffect(() => {
+    if (isError && accessToken) {
+      localStorage.removeItem('accessToken')
+      setAccessToken(null)
+      queryClient.clear()
+    }
+  }, [isError, accessToken, queryClient])
 
   const login = async (idToken) => {
     const res = await loginWithGoogle(idToken)
