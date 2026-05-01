@@ -16,7 +16,7 @@ services:
       - key: SPRING_DATASOURCE_PASSWORD
         sync: false
       - key: JWT_SECRET
-        generateValue: true  # Render가 자동 생성
+        generateValue: true  # Render가 자동 생성.
       - key: CRON_SECRET
         generateValue: true
       - key: ALLOWED_ORIGINS
