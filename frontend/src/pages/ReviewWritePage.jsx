@@ -95,9 +95,9 @@ export default function ReviewWritePage() {
   useEffect(() => {
     if (!existingReview) return
     setForm({
-      taste: existingReview.tasteRating ?? 0,
-      amount: existingReview.amountRating ?? 0,
-      value: existingReview.valueRating ?? 0,
+      taste: existingReview.taste ?? 0,
+      amount: existingReview.amount ?? 0,
+      value: existingReview.value ?? 0,
       comment: existingReview.comment ?? '',
     })
   }, [existingReview?.id])
