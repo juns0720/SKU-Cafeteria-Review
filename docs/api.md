@@ -2,7 +2,7 @@
 
 모든 엔드포인트 prefix: `/api/v1/` (Cron 트리거만 `/api/cron/`)
 
-> **현재 상태 표기**: BE는 v2 Phase 1~2에서 모든 응답 확장이 완료됐다. v3 Coral Redesign은 FE 전용이라 BE 시그니처 변경 없음. 미구현은 V3-T19(reviews.image_url DROP)와 PD-T1(Cloudinary upload-signature)만. 결정 사항(D1~D8) 근거는 [v2 archive overview](./plans/archive/ui-ux-redesign-v2/00-overview.md) 참조.
+> **현재 상태 표기**: BE는 v2 Phase 1~2에서 모든 응답 확장이 완료됐다. 이후 휴일 감지 기능(holidays 테이블 + isHoliday/holidayDays 응답 필드)이 추가됐다. 미구현은 V3-T19(reviews.image_url DROP)와 PD-T1(Cloudinary upload-signature)만. 결정 사항(D1~D8) 근거는 [v2 archive overview](./plans/archive/ui-ux-redesign-v2/00-overview.md) 참조.
 
 ---
 
@@ -77,9 +77,16 @@
 
 > `tier/isNew/firstSeenAt/lastSeenAt/avgTaste/Amount/Value/Overall`은 P2-T5에서 추가. `averageRating`은 v1 호환을 위해 유지.
 
+### `TodayMenuResponse` 추가 필드
+
+| 필드 | 타입 | 비고 |
+|---|---|---|
+| `isHoliday` | boolean | 오늘 메뉴가 0건이고 holidays 테이블에 오늘 날짜가 있으면 true |
+
 ### `/menus/weekly` 응답
 
 `days` 필드: `"MON"~"FRI"` 키, 데이터 없는 요일은 빈 리스트.
+`holidayDays` 필드: 빈 리스트이면서 holidays 테이블에 해당 날짜가 있는 요일 키의 Set (예: `["TUE", "WED"]`).
 
 ---
 
@@ -132,10 +139,11 @@
 
 | 메서드 | 경로 | 인증 | 설명 |
 |---|---|---|---|
-| POST | `/api/v1/admin/crawl` | JWT (authenticated) | 학식 크롤링 수동 트리거 (개발자/관리자용) |
-| GET | `/api/v1/admin/crawl/debug` | JWT | 크롤링 디버그 정보 |
-| POST | `/api/cron/crawl` | `X-Cron-Secret` 헤더 | 외부 cron 트리거 (예정: P2-T13). `CRON_SECRET` env와 일치 시 200, 불일치/누락 시 401 |
+| POST | `/api/v1/admin/crawl` | JWT 또는 `X-Cron-Secret` 헤더 | 학식 크롤링 수동 트리거. 응답: `savedCount` / `skippedCount` / `holidayCount` |
+| GET | `/api/v1/admin/crawl/debug` | JWT 또는 `X-Cron-Secret` 헤더 | 크롤링 대상 페이지 raw HTML 반환 |
+| POST | `/api/cron/crawl` | `X-Cron-Secret` 헤더 | 외부 cron 트리거. `CRON_SECRET` env와 일치 시 202, 불일치/누락 시 401 |
 
+> `/admin/crawl`, `/admin/crawl/debug`는 `X-Cron-Secret` 헤더가 존재하되 불일치 시 401. 헤더 누락 시 JWT 인증으로 대체 가능.
 > ⚠ AdminController는 현재 ROLE_ADMIN 분리 미구현(Known Issue). 일반 JWT로 접근 가능.
 
 ---
