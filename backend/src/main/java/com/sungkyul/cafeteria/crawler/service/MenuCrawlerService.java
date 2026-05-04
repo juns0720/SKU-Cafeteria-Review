@@ -11,6 +11,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.net.ssl.SSLContext;
@@ -50,6 +51,11 @@ public class MenuCrawlerService {
                 .timeout(TIMEOUT_MS)
                 .sslSocketFactory(sslContext.getSocketFactory())
                 .get();
+    }
+
+    @Async
+    public void crawlAndSaveAsync() {
+        crawlAndSave();
     }
 
     public CrawlingResult crawlAndSave() {
