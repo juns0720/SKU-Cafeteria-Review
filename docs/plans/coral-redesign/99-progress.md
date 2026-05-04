@@ -51,7 +51,7 @@
 - [x] **V3-T17**: `frontend/src/components/hi/` 폴더 일괄 삭제 + Tailwind v2 토큰(paper/ink/orange/yellow/green/peach/rule/mute) 제거 + `index.html`에서 Gaegu/Jua link 제거
 - [x] **V3-T18**: v1 `components/` 잔재 삭제 (`BottomNav`, `Header`, `MenuCard`, `MenuDetailModal`, `ReviewItem`, `StarRating`, `StarDisplay`, `WeekTab`) + `ReviewsPage` / `MyReviewsPage` 삭제. `Toast`/`SkeletonCard`는 `coral/`로 이동
 - [x] **V3-T19**: V11 마이그레이션 작성 + 적용 (`reviews.image_url DROP`). **사전 조건**: Supabase 백업 + FE/BE의 `imageUrl` 참조 0건 확인
-- [ ] **V3-T20**: Render + Vercel production 배포 + `ALLOWED_ORIGINS` 갱신 + 스모크 8단계 통과
+- [x] **V3-T20**: Render + Vercel production 배포 + `ALLOWED_ORIGINS` 갱신 + 스모크 8단계 통과
 
 > **Phase v3-3 완료 후**: 본 디렉토리를 `archive/coral-redesign/`로 이동 검토.
 

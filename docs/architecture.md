@@ -163,11 +163,11 @@ prod 프로파일 환경변수 (Render 대시보드에서 설정):
 | V8 | menus 집계 캐시 + first/last_seen_at | 적용 |
 | V9 | menu_dates.meal_slot + UNIQUE 재정의 | 적용 |
 | V10 | reviews.photo_urls + users.avatar_color | 적용 |
-| V11 | reviews.image_url DROP (롤백 불가) | 예정 V3-T19 |
+| V11 | reviews.image_url DROP (롤백 불가) | 적용 (out-of-order) |
 | V12 | users.nickname_changed_at | 적용 |
 | V13 | users.nickname_normalized 컬럼 추가 | 적용 |
 | V14 | menus first/last_seen_at 백필 | 적용 |
 | V15 | holidays 테이블 신설 (holiday_date UNIQUE) | 적용 |
 | V16 | 기존 휴일 메시지 메뉴 데이터 정리 (menu_dates → menus DELETE) | 적용 |
 
-스냅샷: V11 직전에 Supabase 프로젝트 백업 필수 (Supabase 대시보드 > Database > Backups).
+V11은 V12~V16 이후에 추가됐으므로 dev/prod 모두 `spring.flyway.out-of-order=true` 설정 필요 (이미 적용됨).

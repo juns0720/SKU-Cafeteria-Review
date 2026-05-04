@@ -2,7 +2,7 @@
 
 모든 엔드포인트 prefix: `/api/v1/` (Cron 트리거만 `/api/cron/`)
 
-> **현재 상태 표기**: BE는 v2 Phase 1~2에서 모든 응답 확장이 완료됐다. 이후 휴일 감지 기능(holidays 테이블 + isHoliday/holidayDays 응답 필드)이 추가됐다. 미구현은 V3-T19(reviews.image_url DROP)와 PD-T1(Cloudinary upload-signature)만. 결정 사항(D1~D8) 근거는 [v2 archive overview](./plans/archive/ui-ux-redesign-v2/00-overview.md) 참조.
+> **현재 상태 표기**: BE는 v2 Phase 1~2에서 모든 응답 확장이 완료됐다. 이후 휴일 감지 기능(holidays 테이블 + isHoliday/holidayDays 응답 필드)이 추가됐고, V3-T19에서 reviews.image_url DROP(V11)과 imageUrl 호환 코드가 제거됐다. Render + Vercel 배포 완료(V3-T20). 미구현은 PD-T1(Cloudinary upload-signature)만. 결정 사항(D1~D8) 근거는 [v2 archive overview](./plans/archive/ui-ux-redesign-v2/00-overview.md) 참조.
 
 ---
 
@@ -111,7 +111,7 @@
 | `valueRating` | int | 1~5 NOT NULL |
 | `comment` | String? | 0~500자 |
 | `photoUrls` | List\<String\> | 0~3장 (Cloudinary URL) |
-| `imageUrl` | String? | **deprecated**, photoUrls가 비어있고 imageUrl이 있으면 자동 wrap. V11 후 제거 |
+| `imageUrl` | — | **제거됨** (V11, V3-T19). `photoUrls`로 완전 대체 |
 
 ### `ReviewResponse` 필드
 
