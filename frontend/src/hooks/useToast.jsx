@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import Toast from '../components/Toast'
+import Toast from '../components/coral/Toast'
 
 export default function useToast() {
   const [toast, setToast] = useState(null)

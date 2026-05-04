@@ -5,6 +5,7 @@ import com.sungkyul.cafeteria.menu.dto.TodayMenuResponse;
 import com.sungkyul.cafeteria.menu.dto.WeeklyMenuResponse;
 import com.sungkyul.cafeteria.menu.entity.Menu;
 import com.sungkyul.cafeteria.menu.entity.MenuDate;
+import com.sungkyul.cafeteria.menu.repository.HolidayRepository;
 import com.sungkyul.cafeteria.menu.repository.MenuDateRepository;
 import com.sungkyul.cafeteria.menu.repository.MenuRepository;
 import org.junit.jupiter.api.Test;
@@ -31,6 +32,9 @@ class MenuServiceTest {
 
     @Mock
     MenuDateRepository menuDateRepository;
+
+    @Mock
+    HolidayRepository holidayRepository;
 
     @Test
     void getTodayMenus_리뷰없는메뉴도_포함한다() {

@@ -43,7 +43,7 @@ class ReviewServiceTest {
         given(reviewRepository.aggregateByMenuId(1L)).willReturn(new MenuStatAgg(5.0, 4.0, 3.0, 1L));
         given(reviewRepository.countByUserId(10L)).willReturn(1L);
 
-        ReviewRequest request = new ReviewRequest(1L, 5, 4, 3, "맛있어요", null, "https://example.com/photo.jpg");
+        ReviewRequest request = new ReviewRequest(1L, 5, 4, 3, "맛있어요", null);
         ReviewResponse response = reviewService.createReview(10L, request);
 
         assertThat(response.taste()).isEqualTo(5);
@@ -60,7 +60,7 @@ class ReviewServiceTest {
         given(menuRepository.findById(1L)).willReturn(Optional.of(menu));
         given(reviewRepository.existsByUserIdAndMenuId(10L, 1L)).willReturn(true);
 
-        ReviewRequest request = new ReviewRequest(1L, 5, 5, 5, null, null, null);
+        ReviewRequest request = new ReviewRequest(1L, 5, 5, 5, null, null);
         assertThatThrownBy(() -> reviewService.createReview(10L, request))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("이미 리뷰를 작성하셨습니다");
@@ -77,7 +77,7 @@ class ReviewServiceTest {
         given(reviewRepository.save(any())).willAnswer(inv -> inv.getArgument(0));
         given(reviewRepository.aggregateByMenuId(1L)).willReturn(new MenuStatAgg(5.0, 4.0, 3.0, 1L));
 
-        reviewService.createReview(10L, new ReviewRequest(1L, 5, 4, 3, "맛있어요", null, null));
+        reviewService.createReview(10L, new ReviewRequest(1L, 5, 4, 3, "맛있어요", null));
 
         assertThat(menu.getAvgOverall()).isEqualTo((5.0 + 4.0 + 3.0) / 3.0);
         assertThat(menu.getReviewCount()).isEqualTo(1);
@@ -103,7 +103,7 @@ class ReviewServiceTest {
         given(reviewRepository.findById(100L)).willReturn(Optional.of(review));
 
         assertThatThrownBy(() -> reviewService.updateReview(20L, 100L,
-                new com.sungkyul.cafeteria.review.dto.ReviewUpdateRequest(5, 4, 3, "수정", null, null)))
+                new com.sungkyul.cafeteria.review.dto.ReviewUpdateRequest(5, 4, 3, "수정", null)))
                 .isInstanceOf(AccessDeniedException.class)
                 .hasMessage("리뷰 수정 권한이 없습니다");
     }

@@ -55,11 +55,6 @@ public class Review {
     @Column(name = "value_rating", nullable = false)
     private int valueRating;
 
-    @Deprecated
-    @Size(max = 500)
-    @Column(name = "image_url", length = 500)
-    private String imageUrl;
-
     @JdbcTypeCode(SqlTypes.ARRAY)
     @Column(name = "photo_urls", columnDefinition = "text[]")
     @Builder.Default

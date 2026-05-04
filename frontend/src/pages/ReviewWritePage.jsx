@@ -59,7 +59,7 @@ function CtaPortal({ label, onClick, disabled }) {
         type="button"
         onClick={onClick}
         disabled={disabled}
-        className="w-full py-4 bg-g900 text-white rounded-[14px] text-[16px] font-bold tracking-[-0.3px] flex items-center justify-center gap-2 active:scale-[0.99] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+        className="w-full py-4 bg-coral text-white rounded-[14px] text-[16px] font-bold tracking-[-0.3px] flex items-center justify-center gap-2 active:scale-[0.99] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
       >
         {label}
       </button>
@@ -95,9 +95,9 @@ export default function ReviewWritePage() {
   useEffect(() => {
     if (!existingReview) return
     setForm({
-      taste: existingReview.tasteRating ?? 0,
-      amount: existingReview.amountRating ?? 0,
-      value: existingReview.valueRating ?? 0,
+      taste: existingReview.taste ?? 0,
+      amount: existingReview.amount ?? 0,
+      value: existingReview.value ?? 0,
       comment: existingReview.comment ?? '',
     })
   }, [existingReview?.id])

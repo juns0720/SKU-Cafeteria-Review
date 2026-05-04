@@ -154,6 +154,7 @@ export default function WeeklyPage() {
 
   const selectedDayKey = DAY_KEYS[activeIndex]
   const dayMenus = data?.days?.[selectedDayKey] ?? []
+  const isHolidayDay = data?.holidayDays?.includes(selectedDayKey) ?? false
   const cornerGroups = groupByCorner(dayMenus)
 
   const handleMenuSelect = (id) => navigate(`/menus/${id}`)
@@ -185,6 +186,12 @@ export default function WeeklyPage() {
             title="메뉴를 불러오지 못했습니다"
             description="잠시 후 다시 시도해주세요"
           />
+        ) : isHolidayDay ? (
+          <div className="flex flex-col items-center justify-center py-10 gap-2">
+            <span className="text-[32px]">🎌</span>
+            <div className="text-[16px] font-bold text-g900">이 날은 휴일이에요</div>
+            <div className="text-[13px] text-g500">학식이 운영되지 않습니다</div>
+          </div>
         ) : dayMenus.length === 0 ? (
           <Empty
             icon="bowl"

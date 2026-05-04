@@ -42,7 +42,9 @@ com.sungkyul.cafeteria
 │   ├── dto/MenuResponse.java, TodayMenuResponse.java, WeeklyMenuResponse.java, AggregateProjection
 │   ├── entity/Menu.java                 # first/last_seen_at + 집계 캐시 5종
 │   ├── entity/MenuDate.java             # menu_id + served_date + meal_slot
+│   ├── entity/Holiday.java              # holidays 테이블 (holiday_date UNIQUE)
 │   ├── repository/MenuRepository.java
+│   ├── repository/HolidayRepository.java
 │   └── service/MenuService.java
 └── review/
     ├── controller/ReviewController.java
@@ -80,14 +82,16 @@ Long userId = (Long) authentication.getPrincipal();
 | `/api/v1/health` | GET | permitAll |
 | `/api/v1/menus/**` | GET | permitAll |
 | `/api/v1/reviews/**` | GET | permitAll |
-| `/api/cron/**` | POST | permitAll (헤더 검증은 컨트롤러에서, P2-T13) |
+| `/api/cron/**` | POST | permitAll (헤더 검증은 컨트롤러에서) |
+| `/api/v1/admin/crawl` | POST | permitAll (X-Cron-Secret 헤더 검증은 컨트롤러에서) |
+| `/api/v1/admin/crawl/debug` | GET | permitAll (X-Cron-Secret 헤더 검증은 컨트롤러에서) |
 | `/api/v1/admin/**` | * | authenticated (ROLE_ADMIN 분리 예정 — Known Issue) |
 | 나머지 | * | authenticated |
 
 JWT 없는 authenticated 요청은 `AuthenticationEntryPoint`가 401 반환.
 CORS 허용 오리진은 `app.allowed-origins` 환경변수로 주입한다 (`SecurityConfig`에서 쉼표 분리). 로컬 기본값은 `http://localhost:5173`, prod에서는 Render 환경변수 `ALLOWED_ORIGINS`에 Vercel 도메인을 설정한다.
 
-`POST /api/cron/crawl`은 Spring Security에서 permitAll이지만, 컨트롤러 진입 시 `X-Cron-Secret` 헤더와 환경변수 `CRON_SECRET`를 비교해 불일치 시 401을 반환한다.
+`POST /api/cron/crawl`, `POST /api/v1/admin/crawl`, `GET /api/v1/admin/crawl/debug`는 Spring Security에서 permitAll이지만, 컨트롤러 진입 시 `X-Cron-Secret` 헤더와 환경변수 `CRON_SECRET`를 비교해 헤더가 존재하되 불일치 시 401을 반환한다. (헤더 누락 시에는 JWT 인증으로 대체 가능)
 
 ## Crawler 구조
 
@@ -96,8 +100,9 @@ CORS 허용 오리진은 `app.allowed-origins` 환경변수로 주입한다 (`Se
 - **날짜 파싱**: `\d{4}\.\d{2}\.\d{2}` 정규식으로 추출 (`parseDates()`)
 - **SSL 이슈**: 성결대 사이트는 KISA(한국 CA) 인증서를 사용해 JVM 기본 truststore에 없음 → `fetchDocument()`에서 trust-all `SSLContext`로 우회
 - **테스트 설계**: `fetchDocument()`가 package-private이라 같은 패키지의 테스트에서 Mockito `spy`로 stubbing 가능 (`MenuCrawlerServiceTest`)
-- **MealSlot**: `menu_dates.meal_slot`에 `LUNCH` 명시 저장 (P2-T14). 현재 식단표가 점심만이므로 DINNER는 후속.
+- **MealSlot**: `menu_dates.meal_slot`에 `LUNCH` 명시 저장. 현재 식단표가 점심만이므로 DINNER는 후속.
 - **Corner 매핑**: 크롤링한 raw 코너명("한식"/"양식"/"분식"/"일품" 등)은 그대로 VARCHAR로 저장. 응답 직렬화 시 `CornerMapper.fromString()`이 enum으로 변환, 미매칭은 KOREAN fallback + WARN 로그.
+- **휴일 감지**: `HOLIDAY_KEYWORDS`(휴일/휴무/휴관/공휴일 등) 기반 필터로 휴일 안내 문구를 메뉴명으로 저장하지 않음. 해당 날짜에 저장된 메뉴가 0건이면 `holidays` 테이블에 자동 기록. `CrawlingResult.holidayCount`로 감지 수 확인 가능.
 
 ## 집계 캐시 갱신
 
@@ -158,7 +163,11 @@ prod 프로파일 환경변수 (Render 대시보드에서 설정):
 | V8 | menus 집계 캐시 + first/last_seen_at | 적용 |
 | V9 | menu_dates.meal_slot + UNIQUE 재정의 | 적용 |
 | V10 | reviews.photo_urls + users.avatar_color | 적용 |
-| V11 | reviews.image_url DROP (롤백 불가) | 예정 P5-T2 |
+| V11 | reviews.image_url DROP (롤백 불가) | 예정 V3-T19 |
 | V12 | users.nickname_changed_at | 적용 |
+| V13 | users.nickname_normalized 컬럼 추가 | 적용 |
+| V14 | menus first/last_seen_at 백필 | 적용 |
+| V15 | holidays 테이블 신설 (holiday_date UNIQUE) | 적용 |
+| V16 | 기존 휴일 메시지 메뉴 데이터 정리 (menu_dates → menus DELETE) | 적용 |
 
 스냅샷: V11 직전에 Supabase 프로젝트 백업 필수 (Supabase 대시보드 > Database > Backups).

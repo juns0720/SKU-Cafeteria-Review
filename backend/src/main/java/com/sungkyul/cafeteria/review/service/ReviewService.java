@@ -61,7 +61,7 @@ public class ReviewService {
 
         User user = userRepository.getReferenceById(userId);
 
-        List<String> photos = resolvePhotoUrls(request.photoUrls(), request.imageUrl());
+        List<String> photos = resolvePhotoUrls(request.photoUrls());
         Review review = Review.builder()
                 .user(user)
                 .menu(menu)
@@ -69,7 +69,6 @@ public class ReviewService {
                 .amountRating(request.amountRating())
                 .valueRating(request.valueRating())
                 .comment(request.comment())
-                .imageUrl(request.imageUrl())
                 .photoUrls(photos.toArray(new String[0]))
                 .build();
 
@@ -111,7 +110,7 @@ public class ReviewService {
             throw new AccessDeniedException("리뷰 수정 권한이 없습니다");
         }
 
-        List<String> photos = resolvePhotoUrls(request.photoUrls(), request.imageUrl());
+        List<String> photos = resolvePhotoUrls(request.photoUrls());
         review.update(request.tasteRating(), request.amountRating(), request.valueRating(), request.comment(), photos);
         recomputeMenuStats(review.getMenu().getId());
         BadgeTier tier = BadgeTier.of(reviewRepository.countByUserId(userId));
@@ -127,9 +126,8 @@ public class ReviewService {
                 ));
     }
 
-    private List<String> resolvePhotoUrls(List<String> photoUrls, String imageUrl) {
+    private List<String> resolvePhotoUrls(List<String> photoUrls) {
         if (photoUrls != null && !photoUrls.isEmpty()) return photoUrls;
-        if (imageUrl != null && !imageUrl.isBlank()) return List.of(imageUrl);
         return List.of();
     }
 
@@ -160,7 +158,6 @@ public class ReviewService {
                 review.overallRating(),
                 review.getComment(),
                 photos,
-                review.getImageUrl(),
                 review.getCreatedAt(),
                 review.getUpdatedAt(),
                 isMine

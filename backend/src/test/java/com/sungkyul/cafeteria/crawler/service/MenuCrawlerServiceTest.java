@@ -1,8 +1,10 @@
 package com.sungkyul.cafeteria.crawler.service;
 
 import com.sungkyul.cafeteria.crawler.dto.CrawlingResult;
+import com.sungkyul.cafeteria.menu.entity.Holiday;
 import com.sungkyul.cafeteria.menu.entity.Menu;
 import com.sungkyul.cafeteria.menu.entity.MenuDate;
+import com.sungkyul.cafeteria.menu.repository.HolidayRepository;
 import com.sungkyul.cafeteria.menu.repository.MenuDateRepository;
 import com.sungkyul.cafeteria.menu.repository.MenuRepository;
 import org.jsoup.Jsoup;
@@ -32,6 +34,9 @@ class MenuCrawlerServiceTest {
 
     @Mock
     private MenuDateRepository menuDateRepository;
+
+    @Mock
+    private HolidayRepository holidayRepository;
 
     private MenuCrawlerService crawlerService;
 
@@ -66,6 +71,32 @@ class MenuCrawlerServiceTest {
             </body></html>
             """;
 
+    private static final String HOLIDAY_HTML = """
+            <html><body>
+            <table>
+              <thead>
+                <tr>
+                  <th class="title">식단구분</th>
+                  <th>월<br>2026.04.13</th>
+                  <th>화<br>2026.04.14</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>한식</td>
+                  <td>된장찌개<br/>공기밥</td>
+                  <td>휴일</td>
+                </tr>
+                <tr>
+                  <td>양식</td>
+                  <td>스파게티</td>
+                  <td>임시 휴무입니다</td>
+                </tr>
+              </tbody>
+            </table>
+            </body></html>
+            """;
+
     private static final String NO_TABLE_HTML = """
             <html><body><p>메뉴 정보가 없습니다.</p></body></html>
             """;
@@ -81,7 +112,9 @@ class MenuCrawlerServiceTest {
 
     @BeforeEach
     void setUp() {
-        crawlerService = spy(new MenuCrawlerService(menuRepository, menuDateRepository));
+        crawlerService = spy(new MenuCrawlerService(menuRepository, menuDateRepository, holidayRepository));
+        lenient().when(holidayRepository.existsByHolidayDate(any())).thenReturn(false);
+        lenient().when(holidayRepository.save(any(Holiday.class))).thenAnswer(inv -> inv.getArgument(0));
 
         // 기본: 모든 메뉴가 신규 (사용하지 않는 테스트에서 예외가 발생하지 않도록 lenient 설정)
         lenient().when(menuRepository.findByNameAndCorner(any(), any())).thenReturn(Optional.empty());
@@ -285,6 +318,23 @@ class MenuCrawlerServiceTest {
         verify(menuDateRepository, atLeastOnce()).save(captor.capture());
         assertThat(captor.getAllValues()).extracting(MenuDate::getMealSlot)
                 .allMatch("LUNCH"::equals);
+    }
+
+    @Test
+    @DisplayName("휴일 메시지 셀은 메뉴로 저장하지 않음 (no-data 클래스 없어도)")
+    void crawlAndSave_holidayMessage_isSkipped() throws Exception {
+        Document doc = Jsoup.parse(HOLIDAY_HTML);
+        doReturn(doc).when(crawlerService).fetchDocument();
+
+        CrawlingResult result = crawlerService.crawlAndSave();
+
+        // 월요일 한식 2개 + 양식 1개 = 3개만 저장, 화요일 휴일 메시지는 제외
+        assertThat(result.savedCount()).isEqualTo(3);
+
+        ArgumentCaptor<Menu> captor = ArgumentCaptor.forClass(Menu.class);
+        verify(menuRepository, atLeastOnce()).save(captor.capture());
+        assertThat(captor.getAllValues()).extracting(Menu::getName)
+                .doesNotContain("휴일", "임시 휴무입니다");
     }
 
     @Test

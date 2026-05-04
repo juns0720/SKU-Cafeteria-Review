@@ -11,14 +11,13 @@ public record ReviewResponse(
         String menuName,
         String userNickname,
         String userProfileImage,
-        BadgeTier authorBadgeTier,  // 신규
+        BadgeTier authorBadgeTier,
         int taste,
         int amount,
         int value,
         double overall,
         String comment,
-        List<String> photoUrls,     // 신규
-        @Deprecated String imageUrl,
+        List<String> photoUrls,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
         boolean isMine
