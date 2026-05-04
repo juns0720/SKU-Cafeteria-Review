@@ -43,6 +43,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/menus/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/reviews/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/cron/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/admin/crawl/debug").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/admin/crawl").permitAll()
                         .requestMatchers("/api/v1/admin/**").authenticated()
                         .anyRequest().authenticated()
                 )
