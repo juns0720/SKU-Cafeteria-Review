@@ -29,4 +29,4 @@ cron:
 logging:
   level:
     root: INFO
-    com.sungkyul.cafeteria: INFO
+    com.sungkyul.cafh oteria: INFO
