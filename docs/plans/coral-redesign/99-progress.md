@@ -67,12 +67,20 @@
 
 ---
 
+## Phase E — 버그 수정 · 성능 · PWA
+
+- [ ] **BUG-T1**: 닉네임 쿨다운 UX 개선 — `ProfilePage`에서 `nicknameChangedAt` 기반 잠금 + "N일 후 변경 가능" 표시. `NicknameSetupModal` `nextChangeAt` 문구 추가. BE 로직은 정상.
+- [ ] **PERF-T1**: GitHub Actions keep-alive — `.github/workflows/keep-alive.yml` 생성. 평일 07:00–21:00 KST 매 13분 `/api/v1/health` 핑 (Render cold start 방지).
+- [ ] **PERF-T2**: FE 로딩 UX 개선 — `client.js` timeout 30s / React Query `retry:2` + `gcTime` 명시 / 5초 이상 로딩 시 "서버 연결 중…" 메시지 / Vite `manualChunks` 코드 스플리팅.
+- [ ] **PWA-T1**: PWA 설정 — `vite-plugin-pwa` 설치 + manifest(이름: 성결 학식, 테마: #FF6B5C) + 아이콘(192/512 PNG) + Service Worker(정적 에셋 Cache First, API Network Only).
+
+---
+
 ## Known Issues / TODO (v2에서 이월)
 
 - [ ] RefreshToken 관리 미구현 — 발급만, 저장 안 함. Redis(Upstash 무료) 별도 트랙
 - [ ] AdminController 인가 — 일반 JWT로 접근 가능, ROLE_ADMIN 분리 별도 트랙
 - [ ] 닉네임 비속어/은어 필터 고도화 — 범위가 넓어 v3 완료 후 별도 후속
-- [ ] V11 image_url DROP은 Phase v3-3 V3-T19에서 실행 예정 (백업 필수)
 
 ---
 
