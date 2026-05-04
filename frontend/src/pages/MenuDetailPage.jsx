@@ -66,25 +66,25 @@ function ReviewRow({ review, onDelete, onEdit, isDeleting }) {
             className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-[13px] font-bold text-white"
             style={{ background: review.avatarColor ?? '#B0B8C1' }}
           >
-            {review.nickname?.[0] ?? '?'}
+            {review.userNickname?.[0] ?? '?'}
           </div>
-          <span className="text-[13px] font-bold text-g900 truncate">{review.nickname}</span>
+          <span className="text-[13px] font-bold text-g900 truncate">{review.userNickname}</span>
           {badge && <span className="text-[13px] flex-shrink-0">{badge}</span>}
           <span className="text-[11px] text-g500 flex-shrink-0">· {formatDate(review.createdAt)}</span>
         </div>
         {/* 우측: 종합 별점 */}
         <div className="flex items-center gap-1 flex-shrink-0">
-          <Stars value={review.overallRating ?? 0} size={12} />
-          <span className="text-[13px] font-bold text-g900">{(review.overallRating ?? 0).toFixed(1)}</span>
+          <Stars value={review.overall ?? 0} size={12} />
+          <span className="text-[13px] font-bold text-g900">{(review.overall ?? 0).toFixed(1)}</span>
         </div>
       </div>
 
       {/* 3축 요약 */}
       <div className="mt-1.5">
         <MultiStarSummary
-          taste={review.tasteRating}
-          amount={review.amountRating}
-          value={review.valueRating}
+          taste={review.taste}
+          amount={review.amount}
+          value={review.value}
         />
       </div>
 
@@ -141,7 +141,7 @@ function CtaPortal({ label, onClick }) {
       <button
         type="button"
         onClick={onClick}
-        className="w-full py-4 bg-g900 text-white rounded-[14px] text-[16px] font-bold tracking-[-0.3px] flex items-center justify-center gap-2 active:scale-[0.99] transition-transform"
+        className="w-full py-4 bg-coral text-white rounded-[14px] text-[16px] font-bold tracking-[-0.3px] flex items-center justify-center gap-2 active:scale-[0.99] transition-transform"
       >
         <Icon name="pencil" size={16} color="#fff" weight={2} />
         {label}

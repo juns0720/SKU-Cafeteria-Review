@@ -179,7 +179,7 @@ export default function ProfilePage() {
                         </span>
                       </div>
                       <div className="flex items-center gap-1 mt-[3px]">
-                        <Stars value={review.overallRating ?? 0} size={11} />
+                        <Stars value={review.overall ?? 0} size={11} />
                         {(review.menuCorner ?? review.corner) && (
                           <span className="text-[11px] text-g500 ml-1">
                             {review.menuCorner ?? review.corner}

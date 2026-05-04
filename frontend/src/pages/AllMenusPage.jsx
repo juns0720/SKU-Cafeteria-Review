@@ -82,7 +82,7 @@ function MenuRow({ menu, onSelect }) {
           <span className="text-[12.5px] font-medium text-g500">{menu.corner}</span>
           {menu.tier && <MedalDot tier={menu.tier} />}
           {menu.isNew && (
-            <span className="text-[10px] font-extrabold text-white bg-coral px-1.5 py-px rounded-[4px]">
+            <span className="text-[10px] font-bold text-coral bg-coralSoft px-1.5 py-px rounded-[4px]">
               NEW
             </span>
           )}

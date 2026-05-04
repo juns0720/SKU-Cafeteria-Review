@@ -2,35 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --font-hand: 'Gaegu', system-ui, sans-serif;
-  --font-disp: 'Jua', system-ui, sans-serif;
-  --font-user: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif;
-
-  --paper: #FBF6EC;
-  --paper-deep: #F4ECDC;
-  --ink: #2B2218;
-  --ink-soft: #574635;
-  --mute: #8E7A66;
-  --rule: #D8CBB6;
-  --orange: #EF8A3D;
-  --orange-soft: #FCE3C9;
-  --yellow: #F4B73B;
-  --yellow-soft: #FBE6A6;
-  --green: #4A8F5B;
-  --green-soft: #CDE5C8;
-  --peach: #F6C7A8;
-  --red: #D9543A;
-
-  --color-primary: #D94148;
-  --color-primary-dark: #B93540;
-  --color-primary-light: #FDEAEB;
-  --color-bg: #FFFFFF;
-  --color-surface: #F8F8F8;
-  --color-star: #FBBF24;
-  --color-success: #22C55E;
-  --color-error: #D94148;
-}
 
 * {
   box-sizing: border-box;
