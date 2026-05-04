@@ -141,7 +141,7 @@ function CtaPortal({ label, onClick }) {
       <button
         type="button"
         onClick={onClick}
-        className="w-full py-4 bg-g900 text-white rounded-[14px] text-[16px] font-bold tracking-[-0.3px] flex items-center justify-center gap-2 active:scale-[0.99] transition-transform"
+        className="w-full py-4 bg-coral text-white rounded-[14px] text-[16px] font-bold tracking-[-0.3px] flex items-center justify-center gap-2 active:scale-[0.99] transition-transform"
       >
         <Icon name="pencil" size={16} color="#fff" weight={2} />
         {label}
