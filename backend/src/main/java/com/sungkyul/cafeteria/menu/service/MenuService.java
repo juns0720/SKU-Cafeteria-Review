@@ -6,6 +6,7 @@ import com.sungkyul.cafeteria.menu.dto.MenuResponse;
 import com.sungkyul.cafeteria.menu.dto.TodayMenuResponse;
 import com.sungkyul.cafeteria.menu.dto.WeeklyMenuResponse;
 import com.sungkyul.cafeteria.menu.entity.MenuDate;
+import com.sungkyul.cafeteria.menu.repository.HolidayRepository;
 import com.sungkyul.cafeteria.menu.repository.MenuDateRepository;
 import com.sungkyul.cafeteria.menu.repository.MenuRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -16,9 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.PageRequest;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +27,7 @@ public class MenuService {
 
     private final MenuRepository menuRepository;
     private final MenuDateRepository menuDateRepository;
+    private final HolidayRepository holidayRepository;
 
     @Transactional(readOnly = true)
     public List<MenuResponse> getBestOfWeek() {
@@ -77,7 +79,8 @@ public class MenuService {
                 .map(md -> MenuResponse.from(md.getMenu(), md.getServedDate(), today))
                 .toList();
 
-        return new TodayMenuResponse(today, responses);
+        boolean isHoliday = responses.isEmpty() && holidayRepository.existsByHolidayDate(today);
+        return new TodayMenuResponse(today, responses, isHoliday);
     }
 
     @Transactional(readOnly = true)
@@ -105,7 +108,23 @@ public class MenuService {
             days.get(key).add(MenuResponse.from(md.getMenu(), md.getServedDate(), monday));
         }
 
-        return new WeeklyMenuResponse(monday, friday, days);
+        // 이번 주 휴일 조회 → 빈 날짜 중 실제 휴일인 요일 키 수집
+        Set<LocalDate> holidayDatesInWeek = new HashSet<>(
+                holidayRepository.findByHolidayDateBetween(monday, friday)
+                        .stream()
+                        .map(h -> h.getHolidayDate())
+                        .toList()
+        );
+
+        Set<String> holidayDays = new HashSet<>();
+        for (int i = 0; i < keys.length; i++) {
+            LocalDate dayDate = monday.plusDays(i);
+            if (holidayDatesInWeek.contains(dayDate) && days.get(keys[i]).isEmpty()) {
+                holidayDays.add(keys[i]);
+            }
+        }
+
+        return new WeeklyMenuResponse(monday, friday, days, holidayDays);
     }
 
     @Transactional(readOnly = true)
