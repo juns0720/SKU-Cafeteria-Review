@@ -169,6 +169,7 @@
 |---|---|---|---|
 | GET | `/health` | 불필요 | 헬스체크 |
 | GET | `/api/ping-db` | 불필요 | DB keep-alive. `select 1` 실행 후 `ok` 반환 |
+| GET | `/api/warmup` | 불필요 | DB + 오늘 메뉴 + best + 최근 리뷰 10건을 조회해 Hibernate metadata·쿼리 plan을 사전에 데움. 각 단계 fail-soft, 응답에 `elapsedMs` 포함 |
 
 ---
 

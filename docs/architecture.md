@@ -12,6 +12,7 @@ com.sungkyul.cafeteria
 │   │   └── DevFlywayConfig.java         # dev 프로파일 Flyway 보조
 │   ├── controller/HealthController.java # GET /api/v1/health
 │   ├── controller/PingController.java   # GET /api/ping-db (DB keep-alive)
+│   ├── controller/WarmupController.java # GET /api/warmup (DB+today+best+최근 리뷰 사전 로드)
 │   ├── exception/
 │   │   ├── ErrorResponse.java           # 공통 에러 응답 record
 │   │   └── GlobalExceptionHandler.java  # @RestControllerAdvice
@@ -85,6 +86,7 @@ Long userId = (Long) authentication.getPrincipal();
 |---|---|---|
 | `/api/v1/auth/google` | POST | permitAll |
 | `/api/ping-db` | GET | permitAll |
+| `/api/warmup` | GET | permitAll |
 | `/api/v1/health` | GET | permitAll |
 | `/api/v1/home` | GET | permitAll |
 | `/api/v1/menus/**` | GET | permitAll |
