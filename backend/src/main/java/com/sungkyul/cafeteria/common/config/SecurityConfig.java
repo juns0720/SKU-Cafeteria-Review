@@ -41,6 +41,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/google").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/health").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/menus/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/reviews/upload-signature").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/v1/reviews/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/cron/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/admin/crawl/debug").permitAll()

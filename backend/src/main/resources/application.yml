@@ -9,3 +9,8 @@ server:
   port: 8080
 
 # 프로파일별 세부 설정은 application-dev.yml / application-prod.yml 참고
+
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME:}
+  api-key: ${CLOUDINARY_API_KEY:}
+  api-secret: ${CLOUDINARY_API_SECRET:}
