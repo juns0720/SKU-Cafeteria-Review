@@ -147,6 +147,7 @@ prod 프로파일 환경변수 (Render 대시보드에서 설정):
 - `SPRING_DATASOURCE_URL` / `SPRING_DATASOURCE_USERNAME` / `SPRING_DATASOURCE_PASSWORD` — Supabase 연결 정보
   > Render 무료 플랜은 IPv6 미지원. Supabase 직접 연결(포트 5432) 대신 **Connection Pooler — Session 모드**(포트 5432, IPv4)를 사용해야 한다. URL은 `aws-0-xxx.pooler.supabase.com` 형태, username은 `postgres.<project-ref>` 형태.
   > prod HikariCP는 무료 플랜 연결 수를 고려해 `maximum-pool-size=3`, `minimum-idle=1`, `connection-timeout=3000ms`, `keepalive-time=300000ms`로 보수적으로 운영한다.
+- prod는 JSON 등 1KB 이상 응답에 Spring response compression을 활성화한다. 배포 후 `Accept-Encoding: gzip` 요청에서 `content-encoding: gzip` 여부를 확인한다.
 - `JWT_SECRET` — Render가 자동 생성(`generateValue`)
 - `CRON_SECRET` — Render가 자동 생성
 - `ALLOWED_ORIGINS` — 쉼표 구분 허용 오리진 (예: `https://sku-cafeteria.vercel.app,http://localhost:5173`)
