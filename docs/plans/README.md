@@ -27,6 +27,7 @@
    - [`01-phase-1-foundation.md`](./coral-redesign/01-phase-1-foundation.md) — Tailwind 토큰·Pretendard·coral/ 컴포넌트 19종 (V3-T1~T6)
    - [`02-phase-2-pages.md`](./coral-redesign/02-phase-2-pages.md) — 9화면 재작성 (V3-T7~T16)
    - [`03-phase-3-cleanup.md`](./coral-redesign/03-phase-3-cleanup.md) — hi/ + v1 components/ 삭제·V11 DROP·배포 (V3-T17~T20)
+   - [`05-phase-e-performance.md`](./coral-redesign/05-phase-e-performance.md) — 버그 수정·성능·PWA + Render/Supabase 후속 성능 계측 (BUG-T1, DB-T*, FE-T*, PWA-T1, PERF-R1~R9)
    - [`06-phase-d-photo.md`](./coral-redesign/06-phase-d-photo.md) — Cloudinary 다중 업로드 (PD-T1~T3, 병행 가능)
 
 ---

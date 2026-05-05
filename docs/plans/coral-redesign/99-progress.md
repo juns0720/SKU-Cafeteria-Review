@@ -89,6 +89,20 @@
 ### E-4 PWA
 - [x] **PWA-T1**: PWA 설정 — `vite-plugin-pwa` 설치 + manifest(이름: 성결 학식, 테마: #FF6B5C) + 아이콘(192/512 PNG) + Service Worker(정적 에셋 Cache First, API Network Only).
 
+### E-5 Render/Supabase 후속 성능 계측
+
+상세 설계: [`05-phase-e-performance.md`](./05-phase-e-performance.md#phase-e-5--rendersupabase-후속-성능-계측)
+
+- [ ] **PERF-R1**: `RequestTimingFilter` 추가 — 모든 API에 `X-Response-Time-ms` 헤더와 `[REQ]` elapsed 로그 추가
+- [ ] **PERF-R2**: DB warm keep-alive — `GET /api/ping-db` 추가 + keep-alive 대상 변경
+- [ ] **PERF-R3**: HikariCP prod 재조정 — `maximum-pool-size: 3`, `minimum-idle: 1`, 짧은 connection timeout, keepalive 적용
+- [ ] **PERF-R4**: React Query/axios 정책 조정 — axios timeout 8초, query retry 1, mutation retry 0, 메뉴/리뷰 staleTime 분리
+- [ ] **PERF-R5**: `GET /api/v1/menus` 30초 Cache-Control 적용 — 5분 확대는 계측 후 결정
+- [ ] **PERF-R6**: Spring response compression 적용 — JSON gzip 활성화
+- [ ] **PERF-R7**: Supabase `pg_stat_statements` 확인 — 느린 쿼리/호출 많은 쿼리 상위 목록 기록
+- [ ] **PERF-R8**: `reviews(menu_id, created_at DESC)` 복합 인덱스 필요성 판단 — 필요 시 Flyway 추가
+- [ ] **PERF-R9**: 홈 초기 API 수 확인 — 병목 확인 시에만 `GET /api/v1/home` 설계/구현
+
 ---
 
 ## Known Issues / TODO (v2에서 이월)

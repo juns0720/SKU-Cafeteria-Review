@@ -478,3 +478,293 @@ export default defineConfig({
 버그 수정 (독립적, 언제든 가능)
   BUG-T1
 ```
+
+---
+
+## Phase E-5 · Render/Supabase 후속 성능 계측
+
+> **배경**: Render region을 Singapore로 옮긴 뒤 큰 지연은 완화됐다. 남은 딜레이는 Render Free 오버헤드, Render-Supabase 네트워크 왕복, DB connection warm 상태, 프론트 재요청, 캐싱/압축 여부를 분리해서 봐야 한다.
+> **원칙**: `/api/v1/home` 통합, 복합 인덱스 추가, 5분 캐싱처럼 영향 범위가 있는 작업은 계측 결과가 있을 때만 진행한다.
+
+---
+
+## PERF-R1 · RequestTimingFilter 계측
+
+**목표**: 브라우저 전체 대기 시간과 Spring 내부 처리 시간을 분리한다.
+
+**파일**:
+- `backend/src/main/java/com/sungkyul/cafeteria/common/filter/RequestTimingFilter.java` (신규)
+
+### 작업
+
+- `OncePerRequestFilter` 기반 필터를 추가한다.
+- 모든 요청 처리 후 `X-Response-Time-ms` 헤더를 설정한다.
+- 로그 형식은 아래처럼 통일한다.
+
+```text
+[REQ] method=GET uri=/api/v1/menus status=200 elapsed=42ms
+```
+
+### 검증
+
+```bash
+curl -i -s https://<render-host>/api/v1/menus | grep -i "x-response-time"
+```
+
+판단 기준:
+- `curl total`은 긴데 `X-Response-Time-ms`가 짧음 → 네트워크/Render 플랫폼 오버헤드 우선
+- `X-Response-Time-ms`도 김 → API 내부, DB, DTO 변환, 직렬화 확인
+
+---
+
+## PERF-R2 · `/api/ping-db` keep-alive
+
+**목표**: Render 인스턴스뿐 아니라 DB connection까지 warm 상태에 가깝게 유지한다.
+
+**파일**:
+- `backend/src/main/java/com/sungkyul/cafeteria/common/controller/PingController.java` (신규)
+- `backend/src/main/java/com/sungkyul/cafeteria/common/config/SecurityConfig.java`
+- `.github/workflows/keep-alive.yml` (없으면 신규)
+
+### 작업
+
+- `GET /api/ping-db`를 추가한다.
+- 내부에서는 `JdbcTemplate.queryForObject("select 1", Integer.class)`만 수행한다.
+- 응답은 `200 OK`와 `"ok"` 또는 `{ "status": "ok" }`처럼 비민감 정보만 반환한다.
+- `SecurityConfig`에서 `GET /api/ping-db`를 `permitAll`로 연다.
+- 기존 keep-alive가 `/api/v1/health`를 호출하고 있다면 `/api/ping-db`로 바꾼다.
+
+### 검증
+
+```bash
+curl -w "\nTOTAL: %{time_total}s\n" -o /dev/null -s https://<render-host>/api/ping-db
+```
+
+---
+
+## PERF-R3 · HikariCP prod 재조정
+
+**목표**: 무료 Supabase 연결 수를 과하게 잡지 않으면서 idle connection 1개를 warm 상태로 유지한다.
+
+**파일**:
+- `backend/src/main/resources/application-prod.yml`
+
+### 적용값
+
+```yaml
+spring:
+  datasource:
+    hikari:
+      maximum-pool-size: 3
+      minimum-idle: 1
+      connection-timeout: 3000
+      idle-timeout: 60000
+      max-lifetime: 600000
+      keepalive-time: 300000
+```
+
+`RestTemplate` timeout은 이미 적용되어 있으므로 유지한다.
+
+### 검증
+
+- Render 로그에서 Hikari pool 초기화 오류가 없는지 확인
+- `/api/ping-db`, `/api/v1/menus`, `/api/v1/reviews?menuId=...` 반복 호출 시 connection timeout이 발생하지 않는지 확인
+
+---
+
+## PERF-R4 · React Query/axios 요청 정책 조정
+
+**목표**: 실패 요청의 체감 대기 시간을 줄이고, 페이지 이동/복귀 시 불필요한 조회를 줄인다.
+
+**파일**:
+- `frontend/src/api/client.js`
+- `frontend/src/App.jsx`
+- `frontend/src/pages/HomePage.jsx`
+- `frontend/src/pages/WeeklyPage.jsx`
+- `frontend/src/pages/AllMenusPage.jsx`
+- `frontend/src/pages/MenuDetailPage.jsx`
+- `frontend/src/pages/ProfilePage.jsx`
+- `frontend/src/pages/ReviewWritePage.jsx`
+
+### 작업
+
+- axios timeout을 `30000`에서 `8000`으로 낮춘다.
+- 전역 query retry를 `2`에서 `1`로 낮춘다.
+- mutation은 명시적으로 `retry: 0`을 둔다.
+- staleTime 기준:
+
+| Query | staleTime |
+|---|---:|
+| `menus/today`, `menus/weekly`, `menus/best`, `menus/all`, `menus/corners`, `menus/:id` | 5분 |
+| `reviews/:menuId` | 30초 |
+| `reviews/me` | 1분 |
+| `auth/me` | 1분 유지 |
+
+### 검증
+
+- 첫 진입 후 탭 이동/복귀 시 메뉴 API가 staleTime 안에서 반복 호출되지 않는지 Network 탭으로 확인
+- 리뷰 작성/수정/삭제 후 `menus`, 해당 `reviews`, `reviews/me`, `auth/me`만 갱신되는지 확인
+
+---
+
+## PERF-R5 · `/api/v1/menus` Cache-Control
+
+**목표**: 모든 사용자에게 같은 메뉴 목록 API의 반복 왕복 비용을 줄인다.
+
+**파일**:
+- `backend/src/main/java/com/sungkyul/cafeteria/menu/controller/MenuController.java`
+
+### 작업
+
+- 1차 적용 대상은 `GET /api/v1/menus`만으로 제한한다.
+- 헤더는 `Cache-Control: public, max-age=30`으로 시작한다.
+- 5분 캐싱은 리뷰 작성 직후 평균/리뷰 수 반영 지연을 확인한 뒤 결정한다.
+
+### 이번 범위에서 제외
+
+- `GET /api/v1/reviews`: `isMine`이 인증 사용자별로 달라질 수 있어 public cache 금지
+- `auth/me`, `reviews/me`: 사용자별 응답이므로 public cache 금지
+- `menus/today`, `menus/weekly`, `menus/best`, `menus/corners`, `menus/{id}`: 후속 확장 후보
+
+### 검증
+
+```bash
+curl -I https://<render-host>/api/v1/menus
+```
+
+---
+
+## PERF-R6 · Spring response compression
+
+**목표**: JSON 응답이 1KB 이상일 때 전송 크기를 줄인다.
+
+**파일**:
+- `backend/src/main/resources/application-prod.yml`
+
+### 적용값
+
+```yaml
+server:
+  compression:
+    enabled: true
+    mime-types: application/json,text/html,text/xml,text/plain,text/css,application/javascript
+    min-response-size: 1024
+```
+
+### 검증
+
+```bash
+curl -H "Accept-Encoding: gzip" -I https://<render-host>/api/v1/menus
+```
+
+---
+
+## PERF-R7 · Supabase `pg_stat_statements` 확인
+
+**목표**: 인덱스/쿼리 변경 전에 운영 DB에서 실제 느린 쿼리를 확인한다.
+
+### 느린 쿼리
+
+```sql
+select
+  calls,
+  round(total_exec_time::numeric, 2) as total_ms,
+  round(mean_exec_time::numeric, 2) as mean_ms,
+  rows,
+  query
+from pg_stat_statements
+order by mean_exec_time desc
+limit 20;
+```
+
+### 호출 많은 쿼리
+
+```sql
+select
+  calls,
+  round(total_exec_time::numeric, 2) as total_ms,
+  round(mean_exec_time::numeric, 2) as mean_ms,
+  rows,
+  query
+from pg_stat_statements
+order by calls desc
+limit 20;
+```
+
+### 기록할 것
+
+- 평균 실행 시간이 긴 쿼리
+- 호출 수가 과한 쿼리
+- `reviews` 최신순 조회가 정렬 비용을 유발하는지
+- `auth/me`가 초기 진입마다 병목인지
+
+---
+
+## PERF-R8 · `reviews(menu_id, created_at DESC)` 복합 인덱스 판단
+
+**목표**: 리뷰 목록 최신순 페이지네이션이 실제 병목일 때만 인덱스를 추가한다.
+
+**현재 상태**:
+- `V17__add_reviews_menu_index.sql`에 `reviews(menu_id)` 단일 인덱스가 있음.
+
+### 적용 조건
+
+- `GET /api/v1/reviews?menuId=...`가 느림
+- 쿼리 패턴이 `where menu_id = ? order by created_at desc limit ?`
+- `pg_stat_statements` 또는 `EXPLAIN`에서 정렬 비용이 확인됨
+
+### 필요 시 추가할 Flyway
+
+```sql
+CREATE INDEX IF NOT EXISTS idx_reviews_menu_created_at
+    ON reviews (menu_id, created_at DESC);
+```
+
+단일 인덱스 제거는 이번 범위에서 하지 않는다. 운영 안정성을 위해 먼저 복합 인덱스 추가 후 중복 인덱스 정리는 별도 후속으로 둔다.
+
+---
+
+## PERF-R9 · 홈 API 통합 판단
+
+**목표**: 초기 화면의 API 왕복 수가 실제 병목일 때만 `GET /api/v1/home`을 만든다.
+
+**현재 상태**:
+- `HomePage`는 `today`, `best` 2개 API를 병렬 호출한다.
+- `auth/me`는 앱 전역 `useAuth`에서 호출된다.
+
+### 즉시 구현하지 않는 이유
+
+- 현재 홈 데이터 API는 2개이고 React Query가 병렬 실행한다.
+- 통합 API는 DTO와 캐시 무효화 범위가 커지므로, 왕복 수가 실제 병목일 때만 이득이 명확하다.
+
+### 도입 조건
+
+- 초기 진입 API가 3개 이상 반복 발생
+- `X-Response-Time-ms`는 짧지만 브라우저 total/TTFB 합산이 큼
+- 홈 화면에 필요한 데이터가 `todayMenus`, `bestMenus`, 최소 `me` 정도로 제한됨
+
+### 도입 시 원칙
+
+- `GET /api/v1/home`은 홈 화면 전용 DTO만 반환한다.
+- 리뷰 목록, 대용량 통계, 사용자 민감 정보는 포함하지 않는다.
+
+---
+
+## E-5 실행 순서
+
+```
+1단계 — 계측
+  PERF-R1 → 배포 후 curl total/X-Response-Time-ms 비교
+
+2단계 — warm/connection
+  PERF-R2 → PERF-R3
+
+3단계 — 요청 수와 전송량 감소
+  PERF-R4 → PERF-R5 → PERF-R6
+
+4단계 — DB 근거 확인
+  PERF-R7 → PERF-R8
+
+5단계 — 조건부 구조 변경
+  PERF-R9는 초기 API 왕복 수가 병목으로 확인될 때만 진행
+```
