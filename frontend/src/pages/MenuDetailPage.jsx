@@ -11,6 +11,7 @@ import MultiStarSummary from '../components/coral/MultiStarSummary'
 import Stars from '../components/coral/Stars'
 import Thumb from '../components/coral/Thumb'
 import useToast from '../hooks/useToast.jsx'
+import { MENU_STALE_TIME, REVIEW_STALE_TIME } from '../lib/queryTimes'
 
 const BADGE_EMOJI = { GOLD: '🥇', SILVER: '🥈', BRONZE: '🥉', NONE: '' }
 
@@ -205,12 +206,15 @@ export default function MenuDetailPage() {
     queryKey: ['menus', menuId],
     queryFn: () => getMenuById(menuId),
     enabled: isValidId,
+    staleTime: MENU_STALE_TIME,
+    refetchOnWindowFocus: false,
   })
 
   const { data: reviewPage, isLoading: isReviewsLoading, isError: isReviewsError } = useQuery({
     queryKey: ['reviews', menuId],
     queryFn: () => getReviews(menuId),
     enabled: isValidId,
+    staleTime: REVIEW_STALE_TIME,
   })
 
   const reviews = reviewPage?.content ?? []
@@ -219,6 +223,7 @@ export default function MenuDetailPage() {
 
   const deleteMutation = useMutation({
     mutationFn: deleteReview,
+    retry: 0,
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['menus'] }),

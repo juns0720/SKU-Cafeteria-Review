@@ -54,6 +54,9 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     @Query("SELECT r.user.id, COUNT(r) FROM Review r WHERE r.user.id IN :userIds GROUP BY r.user.id")
     List<Object[]> countGroupByUserIdIn(@Param("userIds") Collection<Long> userIds);
 
+    /** 최근 리뷰 N건 (warmup 용도 — 리뷰 entity·인덱스 plan 사전 로드) */
+    List<Review> findTop10ByOrderByCreatedAtDesc();
+
     /** 메뉴별 3축 평균 + 리뷰 수 집계 (집계 캐시 갱신용) */
     @Query("""
         SELECT new com.sungkyul.cafeteria.review.repository.MenuStatAgg(

@@ -6,6 +6,7 @@ import com.sungkyul.cafeteria.menu.dto.WeeklyMenuResponse;
 import com.sungkyul.cafeteria.menu.service.MenuService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/api/v1/menus")
@@ -29,7 +31,9 @@ public class MenuController {
             @RequestParam(required = false) String corner,
             @RequestParam(defaultValue = "reviewed") String scope
     ) {
-        return ResponseEntity.ok(menuService.getMenus(sort, corner, scope));
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.maxAge(30, TimeUnit.SECONDS).cachePublic())
+                .body(menuService.getMenus(sort, corner, scope));
     }
 
     @GetMapping("/best")

@@ -9,7 +9,7 @@ const normalizedBaseUrl = sanitizedBaseUrl
 
 const client = axios.create({
   baseURL: normalizedBaseUrl,
-  timeout: 30000,
+  timeout: 8000,
 })
 
 client.interceptors.request.use((config) => {

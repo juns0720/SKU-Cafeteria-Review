@@ -125,10 +125,14 @@ export default function NicknameSetupModal({ onClose, mode = 'setup', initialNic
 
   // mode/initialNickname 변경 시 리셋
   useEffect(() => {
-    setNickname(initialNickname)
-    setSubmitError('')
-    setAvailability(INITIAL_AVAILABILITY)
-    setAvailabilityCache(new Map())
+    const timer = window.setTimeout(() => {
+      setNickname(initialNickname)
+      setSubmitError('')
+      setAvailability(INITIAL_AVAILABILITY)
+      setAvailabilityCache(new Map())
+    }, 0)
+
+    return () => window.clearTimeout(timer)
   }, [initialNickname, mode])
 
   // 디바운스 가용성 체크

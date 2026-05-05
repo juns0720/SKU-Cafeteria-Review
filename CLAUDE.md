@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 성결대학교 학식 리뷰 풀스택 앱.
 - **Backend**: Spring Boot 3.5 / Java 17 / Gradle 8.14 / PostgreSQL
 - **Frontend**: React 19 / Vite / TailwindCSS v3 / React Query v5 / Pretendard CDN
-- **Deployment**: Render (backend `https://sku-cafeteria-backend.onrender.com`), Supabase (PostgreSQL), Vercel (frontend) — 전부 무료 플랜
+- **Deployment**: Render Singapore (backend `https://sku-cafeteria-n.onrender.com`), Supabase (PostgreSQL), Vercel (frontend) — 전부 무료 플랜
 - **Auth**: Google OAuth2 idToken → JWT (`Authorization: Bearer`)
 
 ## Commands

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { loginWithGoogle, getMe } from '../api/auth'
+import { USER_STALE_TIME } from '../lib/queryTimes'
 
 const AUTH_ME_QUERY_KEY = ['auth', 'me']
 
@@ -22,15 +23,20 @@ export default function useAuth() {
     queryFn: () => getMe().then((res) => res.data),
     enabled: Boolean(accessToken),
     retry: false,
+    staleTime: USER_STALE_TIME,
   })
 
   // getMe() 실패 시 (만료 토큰 / 네트워크 오류) → 토큰 제거, 로그아웃 처리
   useEffect(() => {
-    if (isError && accessToken) {
-      localStorage.removeItem('accessToken')
+    if (!isError || !accessToken) return undefined
+
+    localStorage.removeItem('accessToken')
+    const timer = window.setTimeout(() => {
       setAccessToken(null)
       queryClient.clear()
-    }
+    }, 0)
+
+    return () => window.clearTimeout(timer)
   }, [isError, accessToken, queryClient])
 
   const login = async (idToken) => {
@@ -44,6 +50,7 @@ export default function useAuth() {
       queryKey: AUTH_ME_QUERY_KEY,
       queryFn: () => getMe().then((response) => response.data),
       retry: false,
+      staleTime: USER_STALE_TIME,
     })
   }
 

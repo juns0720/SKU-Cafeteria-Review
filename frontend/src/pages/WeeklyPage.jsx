@@ -6,6 +6,7 @@ import Empty from '../components/coral/Empty'
 import Icon from '../components/coral/Icon'
 import Thumb from '../components/coral/Thumb'
 import WeekPicker from '../components/coral/WeekPicker'
+import { MENU_STALE_TIME } from '../lib/queryTimes'
 
 const DAY_KEYS = ['MON', 'TUE', 'WED', 'THU', 'FRI']
 const DAY_LABELS = ['월', '화', '수', '목', '금']
@@ -145,6 +146,8 @@ export default function WeeklyPage() {
   const { data, isLoading, isError } = useQuery({
     queryKey: ['menus', 'weekly', dateKey],
     queryFn: () => getWeeklyMenus(dateKey),
+    staleTime: MENU_STALE_TIME,
+    refetchOnWindowFocus: false,
   })
 
   // 서버가 weekStart를 반환하면 우선 사용, 없으면 클라이언트 계산값

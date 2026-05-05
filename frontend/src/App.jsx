@@ -7,6 +7,7 @@ import NicknameSetupModal from './components/coral/NicknameSetupModal'
 import Tab from './components/coral/Tab'
 import useAuth from './hooks/useAuth'
 import useToast from './hooks/useToast.jsx'
+import { USER_STALE_TIME } from './lib/queryTimes'
 
 const AllMenusPage = lazy(() => import('./pages/AllMenusPage'))
 const DevComponentsPage = lazy(() => import('./pages/DevComponentsPage'))
@@ -22,9 +23,12 @@ const WeeklyPage = lazy(() => import('./pages/WeeklyPage'))
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 2,
-      staleTime: 1000 * 60,
+      retry: 1,
+      staleTime: USER_STALE_TIME,
       gcTime: 1000 * 60 * 5,
+    },
+    mutations: {
+      retry: 0,
     },
   },
 })

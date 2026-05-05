@@ -1,6 +1,6 @@
 # API Reference
 
-모든 엔드포인트 prefix: `/api/v1/` (Cron 트리거만 `/api/cron/`)
+모든 엔드포인트 prefix: `/api/v1/` (Cron 트리거 `/api/cron/`, DB keep-alive `/api/ping-db` 예외)
 
 > **현재 상태 표기**: BE는 v2 Phase 1~2에서 모든 응답 확장이 완료됐다. 이후 휴일 감지 기능(holidays 테이블 + isHoliday/holidayDays 응답 필드)이 추가됐고, V3-T19에서 reviews.image_url DROP(V11)과 imageUrl 호환 코드가 제거됐다. Render + Vercel 배포 완료(V3-T20). 미구현은 PD-T1(Cloudinary upload-signature)만. 결정 사항(D1~D8) 근거는 [v2 archive overview](./plans/archive/ui-ux-redesign-v2/00-overview.md) 참조.
 
@@ -40,12 +40,27 @@
 
 | 메서드 | 경로 | 인증 | 설명 |
 |---|---|---|---|
-| GET | `/menus?sort=&scope=&corner=` | 불필요 | 전체 메뉴 목록 |
+| GET | `/menus?sort=&scope=&corner=` | 불필요 | 전체 메뉴 목록. `Cache-Control: public, max-age=30` |
 | GET | `/menus/today?slot=LUNCH` | 불필요 | 오늘 학식 (slot 파라미터, 기본 LUNCH) |
 | GET | `/menus/weekly?date=yyyy-MM-dd` | 불필요 | 해당 주 월~금 식단 |
 | GET | `/menus/{menuId}` | 불필요 | 메뉴 단건 상세 (없으면 404) |
 | GET | `/menus/best` | 불필요 | 이번 주 BEST TOP 5 (예정: P2-T7) |
 | GET | `/menus/corners` | 불필요 | 코너 목록 |
+
+---
+
+## Home
+
+| 메서드 | 경로 | 인증 | 설명 |
+|---|---|---|---|
+| GET | `/home?slot=LUNCH` | 불필요 | 홈 화면 초기 데이터. `today` + `bestMenus`, `Cache-Control: public, max-age=30` |
+
+### `HomeResponse` 필드
+
+| 필드 | 타입 | 비고 |
+|---|---|---|
+| `today` | TodayMenuResponse | `/menus/today`와 동일한 구조 |
+| `bestMenus` | MenuResponse[] | `/menus/best`와 동일한 구조 |
 
 ### `/menus` 쿼리 파라미터
 
@@ -153,6 +168,8 @@
 | 메서드 | 경로 | 인증 | 설명 |
 |---|---|---|---|
 | GET | `/health` | 불필요 | 헬스체크 |
+| GET | `/api/v1/ping-db` | 불필요 | DB keep-alive. `select 1` 실행 후 `ok` 반환 |
+| GET | `/api/v1/warmup` | 불필요 | DB + 오늘 메뉴 + best + 최근 리뷰 10건을 조회해 Hibernate metadata·쿼리 plan을 사전에 데움. 각 단계 fail-soft, 응답에 `elapsedMs` 포함 |
 
 ---
 
