@@ -69,6 +69,13 @@ public class GlobalExceptionHandler {
                     .body(ErrorResponse.of(409, "이미 사용 중인 닉네임입니다"));
         }
 
+        if (isReviewConflict(e)) {
+            log.warn("Review constraint conflict", e);
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body(ErrorResponse.of(409, "이미 리뷰를 작성하셨습니다"));
+        }
+
         log.error("Data integrity violation", e);
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -103,6 +110,22 @@ public class GlobalExceptionHandler {
                     message.contains("uk_users_nickname_normalized")
                             || message.contains("nickname_normalized")
                             || message.contains("users_nickname_normalized")
+            )) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
+    }
+
+    private boolean isReviewConflict(Throwable throwable) {
+        Throwable current = throwable;
+        while (current != null) {
+            String message = current.getMessage();
+            if (message != null && (
+                    message.contains("uk_review_user_menu")
+                            || message.contains("reviews_user_id_menu_id")
+                            || message.contains("user_id, menu_id")
             )) {
                 return true;
             }

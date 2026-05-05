@@ -107,7 +107,11 @@ export default function ReviewWritePage() {
     enabled: isValidId,
   })
 
-  const { data: myReviews = [], isLoading: isMyReviewsLoading } = useQuery({
+  const {
+    data: myReviews = [],
+    isLoading: isMyReviewsLoading,
+    isError: isMyReviewsError,
+  } = useQuery({
     queryKey: ['reviews', 'me'],
     queryFn: getMyReviews,
     enabled: isValidId,
@@ -205,6 +209,10 @@ export default function ReviewWritePage() {
 
   const handleSubmit = async () => {
     if (saveMutation.isPending || isUploading) return
+    if (isMyReviewsError) {
+      showToast('내 리뷰 정보를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요', 'error')
+      return
+    }
     if (form.taste === 0 || form.amount === 0 || form.value === 0) {
       showToast('3축 별점을 모두 선택해 주세요', 'error')
       return
@@ -271,7 +279,7 @@ export default function ReviewWritePage() {
     )
   }
 
-  const isFormComplete = form.taste > 0 && form.amount > 0 && form.value > 0
+  const isFormComplete = form.taste > 0 && form.amount > 0 && form.value > 0 && !isMyReviewsError
   const pageTitle = isEditMode ? '리뷰 수정' : '리뷰 쓰기'
   const submitLabel = isUploading
     ? '사진 업로드 중...'

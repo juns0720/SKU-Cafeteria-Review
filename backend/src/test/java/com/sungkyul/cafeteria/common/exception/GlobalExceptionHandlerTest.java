@@ -73,6 +73,14 @@ class GlobalExceptionHandlerTest {
                 .andExpect(jsonPath("$.message").value("이미 사용 중인 닉네임입니다"));
     }
 
+    @Test
+    void returns_409_for_review_constraint_violation() throws Exception {
+        mockMvc.perform(get("/test/review-conflict"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.message").value("이미 리뷰를 작성하셨습니다"));
+    }
+
     @RestController
     static class TestController {
 
@@ -90,6 +98,13 @@ class GlobalExceptionHandlerTest {
         void nicknameConflict() {
             throw new DataIntegrityViolationException(
                     "duplicate key value violates unique constraint \"uk_users_nickname_normalized\""
+            );
+        }
+
+        @GetMapping("/test/review-conflict")
+        void reviewConflict() {
+            throw new DataIntegrityViolationException(
+                    "duplicate key value violates unique constraint \"uk_review_user_menu\""
             );
         }
 
