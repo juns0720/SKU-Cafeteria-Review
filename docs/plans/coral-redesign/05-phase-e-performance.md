@@ -438,7 +438,7 @@ export default defineConfig({
       workbox: {
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/sku-cafeteria-backend\.onrender\.com\/api/,
+            urlPattern: /^https:\/\/sku-cafeteria-n\.onrender\.com\/api/,
             handler: 'NetworkOnly',   // API는 캐시 안 함
           },
         ],

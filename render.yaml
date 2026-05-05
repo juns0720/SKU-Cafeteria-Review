@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: sku-cafeteria-backend
+    name: sku-cafeteria-n
     runtime: docker
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
