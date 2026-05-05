@@ -32,9 +32,12 @@ export default {
       },
       fontFamily: {
         // ── v3 Coral ──────────────────────────────────────────────
-        pretendard: ['Pretendard', '-apple-system', 'BlinkMacSystemFont',
-                     'Apple SD Gothic Neo', 'system-ui', 'sans-serif'],
-        sans: ['Pretendard', 'sans-serif'],
+        pretendard: ['Pretendard', 'system-ui', '-apple-system', 'BlinkMacSystemFont',
+                     'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR',
+                     'Malgun Gothic', 'sans-serif'],
+        sans: ['Pretendard', 'system-ui', '-apple-system', 'BlinkMacSystemFont',
+               'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR',
+               'Malgun Gothic', 'sans-serif'],
       },
       boxShadow: {
         // ── v3 Coral ──────────────────────────────────────────────

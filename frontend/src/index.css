@@ -1,3 +1,11 @@
+@font-face {
+  font-family: "Pretendard";
+  src: url("/fonts/PretendardVariable.woff2") format("woff2");
+  font-weight: 45 920;
+  font-style: normal;
+  font-display: optional;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -10,8 +18,9 @@
 }
 
 body {
-  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont,
-               'Apple SD Gothic Neo', system-ui, sans-serif;
+  font-family: "Pretendard", system-ui, -apple-system, BlinkMacSystemFont,
+               "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR",
+               "Malgun Gothic", sans-serif;
   background: #ffffff;
   color: #191F28;
   -webkit-font-smoothing: antialiased;
