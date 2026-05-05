@@ -11,7 +11,10 @@ jobs:
     env:
       BACKEND_URL: ${{ vars.BACKEND_URL }}
     steps:
-      - name: Ping backend and DB
+      - name: Ping backend and warm cold-path
         run: |
-          BACKEND_URL="${BACKEND_URL:-https://sku-cafeteria-backend.onrender.com}"
-          curl -fsS "$BACKEND_URL/api/ping-db"
+          BACKEND_URL="${BACKEND_URL:-https://sku-cafeteria-n.onrender.com}"
+          # ping-db: 인스턴스 깨우기 + DB 커넥션 keep-alive
+          curl -fsS -m 30 "$BACKEND_URL/api/ping-db" || true
+          # warmup: 오늘 메뉴 + best + 최근 리뷰를 미리 조회해 Hibernate metadata·쿼리 plan을 데움
+          curl -fsS -m 30 "$BACKEND_URL/api/warmup" || true
