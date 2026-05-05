@@ -13,8 +13,6 @@ export async function uploadToCloudinary(file, sig) {
   fd.append('signature', sig.signature);
   fd.append('folder', sig.folder);
   fd.append('allowed_formats', sig.allowedFormats);
-  fd.append('max_file_size', sig.maxFileSize);
-  fd.append('resource_type', sig.resourceType);
 
   const res = await fetch(
     `https://api.cloudinary.com/v1_1/${sig.cloudName}/image/upload`,

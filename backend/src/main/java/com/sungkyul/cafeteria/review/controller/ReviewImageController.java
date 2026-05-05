@@ -21,11 +21,11 @@ public class ReviewImageController {
     public UploadSignatureResponse getUploadSignature() {
         long timestamp = System.currentTimeMillis() / 1000;
 
+        // resource_type·max_file_size는 signed upload 서명 대상 파라미터가 아님
         Map<String, Object> params = new HashMap<>();
         params.put("timestamp", timestamp);
         params.put("folder", "reviews");
         params.put("allowed_formats", "jpg,jpeg,png,webp");
-        params.put("max_file_size", 5_242_880);
 
         String signature = cloudinary.apiSignRequest(params, cloudinary.config.apiSecret);
 
