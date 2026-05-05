@@ -63,7 +63,7 @@
 
 - [x] **PD-T1**: BE Cloudinary 빈 + gradle 의존성 + application.yml + 다중 파일 서명 (`GET /api/v1/reviews/upload-signature`)
 - [ ] **PD-T2**: Render 환경변수 (`CLOUDINARY_CLOUD_NAME` / `_API_KEY` / `_API_SECRET`) 등록 + 재배포
-- [ ] **PD-T3**: FE `api/upload.js` + `ReviewWritePage` 첨부 UX (5MB/each, 0~3장, jpeg/png/webp) + 썸네일 + 라이트박스 + 업로드 실패 폴백
+- [x] **PD-T3**: FE `api/upload.js` + `ReviewWritePage` 첨부 UX (5MB/each, 0~3장, jpeg/png/webp) + 썸네일 + 라이트박스 + 업로드 실패 폴백
 
 ---
 

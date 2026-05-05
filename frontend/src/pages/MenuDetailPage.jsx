@@ -1,4 +1,5 @@
 import { createPortal } from 'react-dom'
+import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getMenuById } from '../api/menus'
@@ -22,7 +23,6 @@ function formatDate(value) {
 
 function formatLastSeen(value) {
   if (!value) return ''
-  // "yyyy-mm-dd" 또는 ISO string 처리
   const m = String(value).match(/^(\d{4})-(\d{2})-(\d{2})/)
   if (m) return `${+m[2]}월 ${+m[3]}일 제공`
   const d = new Date(value)
@@ -53,9 +53,40 @@ function DetailSkeleton() {
   )
 }
 
+function Lightbox({ url, onClose }) {
+  useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [onClose])
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[9999] bg-black/90 flex items-center justify-center"
+      onClick={onClose}
+    >
+      <img
+        src={url}
+        alt="리뷰 사진"
+        className="max-w-full max-h-full object-contain px-4"
+        onClick={(e) => e.stopPropagation()}
+      />
+      <button
+        type="button"
+        onClick={onClose}
+        className="absolute top-4 right-4 w-9 h-9 bg-black/40 rounded-full flex items-center justify-center"
+      >
+        <Icon name="x" size={18} color="#fff" weight={2} />
+      </button>
+    </div>,
+    document.body
+  )
+}
+
 function ReviewRow({ review, onDelete, onEdit, isDeleting }) {
   const badge = BADGE_EMOJI[review.authorBadgeTier] ?? ''
   const photoUrls = (review.photoUrls ?? []).filter(Boolean)
+  const [lightboxUrl, setLightboxUrl] = useState(null)
 
   return (
     <div className="py-3.5">
@@ -99,9 +130,14 @@ function ReviewRow({ review, onDelete, onEdit, isDeleting }) {
       {photoUrls.length > 0 && (
         <div className="mt-3 grid grid-cols-3 gap-2">
           {photoUrls.map((url, i) => (
-            <div key={i} className="aspect-square rounded-[12px] overflow-hidden bg-g100">
+            <button
+              key={i}
+              type="button"
+              onClick={() => setLightboxUrl(url)}
+              className="aspect-square rounded-[12px] overflow-hidden bg-g100 active:opacity-80 transition-opacity"
+            >
               <img src={url} alt={`리뷰 사진 ${i + 1}`} className="w-full h-full object-cover" />
-            </div>
+            </button>
           ))}
         </div>
       )}
@@ -126,6 +162,11 @@ function ReviewRow({ review, onDelete, onEdit, isDeleting }) {
             {isDeleting ? '삭제 중...' : '삭제'}
           </button>
         </div>
+      )}
+
+      {/* 라이트박스 */}
+      {lightboxUrl && (
+        <Lightbox url={lightboxUrl} onClose={() => setLightboxUrl(null)} />
       )}
     </div>
   )
@@ -199,7 +240,6 @@ export default function MenuDetailPage() {
 
   const handleOpenReview = () => navigate(`/menus/${menuId}/review`)
 
-  // 잘못된 ID
   if (!isValidId) {
     return (
       <div className="animate-fadeInUp px-6 py-4">

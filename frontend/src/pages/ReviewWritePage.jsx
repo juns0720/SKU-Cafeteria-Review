@@ -1,15 +1,18 @@
 import { createPortal } from 'react-dom'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getMenuById } from '../api/menus'
 import { createReview, getMyReviews, updateReview } from '../api/reviews'
+import { getUploadSignature, uploadToCloudinary } from '../api/upload'
 import Icon from '../components/coral/Icon'
 import MultiStarInput from '../components/coral/MultiStarInput'
 import Thumb from '../components/coral/Thumb'
 import useToast from '../hooks/useToast.jsx'
 
 const EMPTY_FORM = { taste: 0, amount: 0, value: 0, comment: '' }
+const MAX_PHOTOS = 3
+const MAX_FILE_BYTES = 5 * 1024 * 1024
 
 function formatLastSeen(value) {
   if (!value) return ''
@@ -18,6 +21,21 @@ function formatLastSeen(value) {
   const d = new Date(value)
   if (isNaN(d.getTime())) return ''
   return `${d.getMonth() + 1}월 ${d.getDate()}일 제공`
+}
+
+function PhotoSlot({ src, onRemove }) {
+  return (
+    <div className="relative w-20 h-20 rounded-[14px] overflow-hidden bg-g100 flex-shrink-0">
+      <img src={src} alt="" className="w-full h-full object-cover" />
+      <button
+        type="button"
+        onClick={onRemove}
+        className="absolute top-1 right-1 w-5 h-5 bg-black/60 rounded-full flex items-center justify-center"
+      >
+        <Icon name="x" size={10} color="#fff" weight={2.5} />
+      </button>
+    </div>
+  )
 }
 
 function WriteSkeleton() {
@@ -75,7 +93,13 @@ export default function ReviewWritePage() {
   const { showToast, ToastComponent } = useToast()
   const menuId = Number(id)
   const isValidId = Number.isInteger(menuId) && menuId > 0
+
   const [form, setForm] = useState(EMPTY_FORM)
+  const [existingUrls, setExistingUrls] = useState([])
+  const [newFiles, setNewFiles] = useState([])
+  const [newPreviews, setNewPreviews] = useState([])
+  const [isUploading, setIsUploading] = useState(false)
+  const fileInputRef = useRef(null)
 
   const { data: menu, isLoading: isMenuLoading, isError: isMenuError } = useQuery({
     queryKey: ['menus', menuId],
@@ -100,7 +124,56 @@ export default function ReviewWritePage() {
       value: existingReview.value ?? 0,
       comment: existingReview.comment ?? '',
     })
+    setExistingUrls(existingReview.photoUrls ?? [])
   }, [existingReview?.id])
+
+  // ObjectURL 정리
+  useEffect(() => {
+    return () => newPreviews.forEach(URL.revokeObjectURL)
+  }, [newPreviews])
+
+  const totalPhotos = existingUrls.length + newFiles.length
+  const canAddMore = totalPhotos < MAX_PHOTOS
+
+  const handleFileChange = (e) => {
+    const picked = Array.from(e.target.files ?? [])
+    e.target.value = ''
+
+    const remaining = MAX_PHOTOS - totalPhotos
+    const valid = []
+
+    for (const file of picked) {
+      if (valid.length >= remaining) {
+        showToast('최대 3장까지 첨부 가능합니다', 'error')
+        break
+      }
+      if (!file.type.startsWith('image/')) {
+        showToast('이미지 파일만 첨부 가능합니다', 'error')
+        continue
+      }
+      if (file.size > MAX_FILE_BYTES) {
+        showToast('5MB 이하 파일만 첨부 가능합니다', 'error')
+        continue
+      }
+      valid.push(file)
+    }
+
+    if (valid.length === 0) return
+
+    const previews = valid.map(URL.createObjectURL)
+    setNewFiles((prev) => [...prev, ...valid])
+    setNewPreviews((prev) => [...prev, ...previews])
+  }
+
+  const removeExisting = (index) => {
+    setExistingUrls((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  const removeNew = (index) => {
+    URL.revokeObjectURL(newPreviews[index])
+    setNewFiles((prev) => prev.filter((_, i) => i !== index))
+    setNewPreviews((prev) => prev.filter((_, i) => i !== index))
+  }
 
   const saveMutation = useMutation({
     mutationFn: (payload) =>
@@ -130,18 +203,48 @@ export default function ReviewWritePage() {
     setForm((prev) => ({ ...prev, [field]: rating }))
   }
 
-  const handleSubmit = () => {
-    if (saveMutation.isPending) return
+  const handleSubmit = async () => {
+    if (saveMutation.isPending || isUploading) return
     if (form.taste === 0 || form.amount === 0 || form.value === 0) {
       showToast('3축 별점을 모두 선택해 주세요', 'error')
       return
     }
+
+    let uploadedUrls = []
+    if (newFiles.length > 0) {
+      setIsUploading(true)
+      try {
+        const sig = await getUploadSignature()
+        const results = await Promise.allSettled(
+          newFiles.map((f) => uploadToCloudinary(f, sig))
+        )
+        uploadedUrls = results
+          .filter((r) => r.status === 'fulfilled')
+          .map((r) => r.value.secure_url)
+        const failedCount = results.filter((r) => r.status === 'rejected').length
+        if (failedCount > 0) {
+          const proceed = window.confirm(
+            `사진 ${failedCount}장을 업로드하지 못했습니다. 그래도 등록할까요?`
+          )
+          if (!proceed) {
+            setIsUploading(false)
+            return
+          }
+        }
+      } catch {
+        showToast('사진 업로드에 실패했습니다', 'error')
+        setIsUploading(false)
+        return
+      }
+      setIsUploading(false)
+    }
+
     saveMutation.mutate({
       tasteRating: form.taste,
       amountRating: form.amount,
       valueRating: form.value,
       comment: form.comment.trim() || null,
-      photoUrls: [],
+      photoUrls: [...existingUrls, ...uploadedUrls],
     })
   }
 
@@ -170,9 +273,11 @@ export default function ReviewWritePage() {
 
   const isFormComplete = form.taste > 0 && form.amount > 0 && form.value > 0
   const pageTitle = isEditMode ? '리뷰 수정' : '리뷰 쓰기'
-  const submitLabel = saveMutation.isPending
-    ? (isEditMode ? '저장 중...' : '등록 중...')
-    : (isEditMode ? '리뷰 저장' : '리뷰 등록')
+  const submitLabel = isUploading
+    ? '사진 업로드 중...'
+    : saveMutation.isPending
+      ? isEditMode ? '저장 중...' : '등록 중...'
+      : isEditMode ? '리뷰 저장' : '리뷰 등록'
 
   return (
     <>
@@ -212,18 +317,47 @@ export default function ReviewWritePage() {
             </div>
             <textarea
               value={form.comment}
-              onChange={(e) => setForm((prev) => ({ ...prev, comment: e.target.value.slice(0, 500) }))}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, comment: e.target.value.slice(0, 500) }))
+              }
               placeholder="바삭함이 좋았는지, 양이 넉넉했는지 한 마디로 남겨보세요."
               rows={4}
               className="mt-2.5 w-full resize-none bg-g50 rounded-[14px] px-3.5 py-3.5 text-[14px] text-g800 placeholder:text-g400 outline-none leading-relaxed"
             />
           </div>
 
-          {/* 사진 첨부 (Phase D) */}
-          <div className="flex items-center gap-2 mt-3">
-            <Icon name="cam" size={16} color="#6B7684" weight={1.7} />
-            <span className="text-[12px] font-semibold text-g600">사진 첨부 (선택)</span>
-            <span className="text-[11px] text-g400">Phase D 예정</span>
+          {/* 사진 첨부 */}
+          <div className="mt-[22px]">
+            <div className="flex items-baseline gap-2 mb-3">
+              <span className="text-[16px] font-extrabold tracking-[-0.3px] text-g900">사진</span>
+              <span className="text-[12px] text-g500">(선택, 최대 3장)</span>
+            </div>
+            <div className="flex gap-2.5">
+              {existingUrls.map((url, i) => (
+                <PhotoSlot key={`ex-${i}`} src={url} onRemove={() => removeExisting(i)} />
+              ))}
+              {newPreviews.map((src, i) => (
+                <PhotoSlot key={`new-${i}`} src={src} onRemove={() => removeNew(i)} />
+              ))}
+              {canAddMore && (
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-20 h-20 rounded-[14px] bg-g100 flex flex-col items-center justify-center gap-1 active:bg-g200 transition-colors flex-shrink-0"
+                >
+                  <Icon name="cam" size={20} color="#8B95A1" weight={1.7} />
+                  <span className="text-[11px] font-medium text-g500">{totalPhotos}/3</span>
+                </button>
+              )}
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              multiple
+              className="hidden"
+              onChange={handleFileChange}
+            />
           </div>
         </div>
       </div>
@@ -231,7 +365,7 @@ export default function ReviewWritePage() {
       <CtaPortal
         label={submitLabel}
         onClick={handleSubmit}
-        disabled={!isFormComplete || saveMutation.isPending}
+        disabled={!isFormComplete || saveMutation.isPending || isUploading}
       />
     </>
   )
