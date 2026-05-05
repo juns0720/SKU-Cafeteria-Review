@@ -11,6 +11,7 @@ com.sungkyul.cafeteria
 │   │   ├── SecurityConfig.java          # Security + CORS + JwtAuthFilter 등록
 │   │   └── DevFlywayConfig.java         # dev 프로파일 Flyway 보조
 │   ├── controller/HealthController.java # GET /api/v1/health
+│   ├── controller/PingController.java   # GET /api/ping-db (DB keep-alive)
 │   ├── exception/
 │   │   ├── ErrorResponse.java           # 공통 에러 응답 record
 │   │   └── GlobalExceptionHandler.java  # @RestControllerAdvice
@@ -79,6 +80,7 @@ Long userId = (Long) authentication.getPrincipal();
 | 경로 | 메서드 | 인증 |
 |---|---|---|
 | `/api/v1/auth/google` | POST | permitAll |
+| `/api/ping-db` | GET | permitAll |
 | `/api/v1/health` | GET | permitAll |
 | `/api/v1/menus/**` | GET | permitAll |
 | `/api/v1/reviews/**` | GET | permitAll |

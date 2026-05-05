@@ -94,7 +94,7 @@
 상세 설계: [`05-phase-e-performance.md`](./05-phase-e-performance.md#phase-e-5--rendersupabase-후속-성능-계측)
 
 - [x] **PERF-R1**: `RequestTimingFilter` 추가 — 모든 API에 `X-Response-Time-ms` 헤더와 `[REQ]` elapsed 로그 추가
-- [ ] **PERF-R2**: DB warm keep-alive — `GET /api/ping-db` 추가 + keep-alive 대상 변경
+- [x] **PERF-R2**: DB warm keep-alive — `GET /api/ping-db` 추가 + keep-alive 대상 변경
 - [ ] **PERF-R3**: HikariCP prod 재조정 — `maximum-pool-size: 3`, `minimum-idle: 1`, 짧은 connection timeout, keepalive 적용
 - [ ] **PERF-R4**: React Query/axios 정책 조정 — axios timeout 8초, query retry 1, mutation retry 0, 메뉴/리뷰 staleTime 분리
 - [ ] **PERF-R5**: `GET /api/v1/menus` 30초 Cache-Control 적용 — 5분 확대는 계측 후 결정

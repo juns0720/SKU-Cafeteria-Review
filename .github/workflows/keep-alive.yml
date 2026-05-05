@@ -1,0 +1,17 @@
+name: keep-alive
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    env:
+      BACKEND_URL: ${{ vars.BACKEND_URL }}
+    steps:
+      - name: Ping backend and DB
+        run: |
+          BACKEND_URL="${BACKEND_URL:-https://sku-cafeteria-backend.onrender.com}"
+          curl -fsS "$BACKEND_URL/api/ping-db"

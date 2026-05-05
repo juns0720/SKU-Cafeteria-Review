@@ -1,6 +1,6 @@
 # API Reference
 
-모든 엔드포인트 prefix: `/api/v1/` (Cron 트리거만 `/api/cron/`)
+모든 엔드포인트 prefix: `/api/v1/` (Cron 트리거 `/api/cron/`, DB keep-alive `/api/ping-db` 예외)
 
 > **현재 상태 표기**: BE는 v2 Phase 1~2에서 모든 응답 확장이 완료됐다. 이후 휴일 감지 기능(holidays 테이블 + isHoliday/holidayDays 응답 필드)이 추가됐고, V3-T19에서 reviews.image_url DROP(V11)과 imageUrl 호환 코드가 제거됐다. Render + Vercel 배포 완료(V3-T20). 미구현은 PD-T1(Cloudinary upload-signature)만. 결정 사항(D1~D8) 근거는 [v2 archive overview](./plans/archive/ui-ux-redesign-v2/00-overview.md) 참조.
 
@@ -153,6 +153,7 @@
 | 메서드 | 경로 | 인증 | 설명 |
 |---|---|---|---|
 | GET | `/health` | 불필요 | 헬스체크 |
+| GET | `/api/ping-db` | 불필요 | DB keep-alive. `select 1` 실행 후 `ok` 반환 |
 
 ---
 
