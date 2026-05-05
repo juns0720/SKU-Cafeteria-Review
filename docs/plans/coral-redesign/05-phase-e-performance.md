@@ -663,6 +663,8 @@ curl -H "Accept-Encoding: gzip" -I https://<render-host>/api/v1/menus
 
 **목표**: 인덱스/쿼리 변경 전에 운영 DB에서 실제 느린 쿼리를 확인한다.
 
+**기록 문서**: [`perf-r7-pg-stat-statements.md`](./perf-r7-pg-stat-statements.md)
+
 ### 느린 쿼리
 
 ```sql
