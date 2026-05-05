@@ -10,6 +10,7 @@ import Stars from '../components/coral/Stars'
 import StatsGrid from '../components/coral/StatsGrid'
 import Thumb from '../components/coral/Thumb'
 import useAuth from '../hooks/useAuth'
+import { USER_STALE_TIME } from '../lib/queryTimes'
 
 const BADGE_EMOJI = { NONE: '', BRONZE: '🥉', SILVER: '🥈', GOLD: '🥇' }
 const BADGE_NEXT_LABEL = { NONE: '🥉 브론즈', BRONZE: '🥈 실버', SILVER: '🥇 골드', GOLD: '🥇 골드' }
@@ -46,11 +47,13 @@ export default function ProfilePage() {
   const navigate = useNavigate()
   const { user, logout } = useAuth()
   const [isNicknameEditOpen, setIsNicknameEditOpen] = useState(false)
+  const [now] = useState(() => Date.now())
 
   const { data: myReviews = [], isLoading: isReviewsLoading, isError: isReviewsError } = useQuery({
     queryKey: ['reviews', 'me'],
     queryFn: getMyReviews,
     enabled: Boolean(user),
+    staleTime: USER_STALE_TIME,
   })
 
   if (!user) return <ProfileSkeleton />
@@ -59,7 +62,7 @@ export default function ProfilePage() {
     if (!user?.nicknameChangedAt) return 0
     const changedAt = new Date(user.nicknameChangedAt)
     const unlockAt  = new Date(changedAt.getTime() + 30 * 24 * 60 * 60 * 1000)
-    const diff      = Math.ceil((unlockAt - Date.now()) / (1000 * 60 * 60 * 24))
+    const diff      = Math.ceil((unlockAt - now) / (1000 * 60 * 60 * 24))
     return diff > 0 ? diff : 0
   })()
   const canChangeNickname = remainingDays === 0

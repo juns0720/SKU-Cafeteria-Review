@@ -89,6 +89,36 @@
 ### E-4 PWA
 - [x] **PWA-T1**: PWA 설정 — `vite-plugin-pwa` 설치 + manifest(이름: 성결 학식, 테마: #FF6B5C) + 아이콘(192/512 PNG) + Service Worker(정적 에셋 Cache First, API Network Only).
 
+### E-5 Render/Supabase 후속 성능 계측
+
+상세 설계: [`05-phase-e-performance.md`](./05-phase-e-performance.md#phase-e-5--rendersupabase-후속-성능-계측)
+
+- [x] **PERF-R1**: `RequestTimingFilter` 추가 — 모든 API에 `X-Response-Time-ms` 헤더와 `[REQ]` elapsed 로그 추가
+- [x] **PERF-R2**: DB warm keep-alive — `GET /api/v1/ping-db` 추가 + keep-alive 대상 변경
+- [x] **PERF-R3**: HikariCP prod 재조정 — `maximum-pool-size: 3`, `minimum-idle: 1`, 짧은 connection timeout, keepalive 적용
+- [x] **PERF-R4**: React Query/axios 정책 조정 — axios timeout 8초, query retry 1, mutation retry 0, 메뉴/리뷰 staleTime 분리
+- [x] **PERF-R5**: `GET /api/v1/menus` 30초 Cache-Control 적용 — 5분 확대는 계측 후 결정
+- [x] **PERF-R6**: Spring response compression 적용 — JSON gzip 활성화
+- [x] **PERF-R7**: Supabase `pg_stat_statements` 확인 — 실행 SQL/기록 양식 추가, 운영 결과는 배포 후 기록
+- [x] **PERF-R8**: `reviews(menu_id, created_at DESC)` 복합 인덱스 필요성 판단 — Flyway V18 추가
+- [x] **PERF-R9**: 홈 초기 API 수 확인 — `GET /api/v1/home`으로 `today` + `bestMenus` 통합
+
+### E-6 perform.md 후속 (실데이터 warmup + URL 정합)
+
+상세 설계: `~/.claude/plans/perform-md-robust-wadler.md` (perform.md 기반 후속 분석·우선순위·단위 명세)
+
+- [x] **PERF-R14**: 운영 URL 검증 · stale 참조 정리 — Vercel `VITE_API_BASE_URL` 확인 + `CLAUDE.md` Project Overview · `frontend/vite.config.js` PWA urlPattern을 `sku-cafeteria-n.onrender.com`으로 교체. 브라우저 Network 탭으로 실제 호출 도메인 검증
+- [x] **PERF-R10**: `/api/v1/warmup` 엔드포인트 추가 — `WarmupController`(common) 신설. `select 1` + `getTodayMenus(LUNCH)` + `getBestOfWeek()` + 최근 리뷰 10건. 단계별 try/catch로 fail-soft, 응답에 `elapsedMs` 포함. `SecurityConfig`에 `permitAll`
+- [x] **PERF-R11**: `.github/workflows/keep-alive.yml` 갱신 — `BACKEND_URL` 기본값 `sku-cafeteria-n.onrender.com`으로 교정 + `/api/v1/warmup` 호출 추가(`/api/v1/ping-db`는 유지). 둘 다 `curl -fsS -m 30 || true`
+- [x] **PERF-R15**: 검증 명령어 문서화 — `05-phase-e-performance.md`에 E-6 섹션 추가. curl 상세 시간 측정(PowerShell 변형 포함) · `X-Response-Time` 헤더 확인 · before/after 표 양식
+- [x] **PERF-R13**: Flyway V19 — `idx_reviews_user_created_at (user_id, created_at DESC)` 복합 인덱스. `/reviews/me` 풀스캔 방지
+- [x] **PERF-R12**: 메뉴/홈 query에 한해 `refetchOnWindowFocus: false` — `HomePage`/`WeeklyPage`/`AllMenusPage`/`MenuDetailPage`(메뉴 부분만)/`ReviewWritePage`(메뉴 부분만). 리뷰·인증 query는 default(true) 유지
+
+#### E-6 보류 결정 (이번 라운드 제외)
+
+- **Spring Cache + Caffeine** (perform.md F항): Render Free 메모리 압박 + 현재 `Cache-Control: public, max-age=30`로 브라우저/CDN 캐시 적용 상태. PERF-R10 적용 후 Render 로그의 `[REQ] elapsed` 분포를 보고 재논의
+- **리뷰 통계 증분 업데이트** (perform.md I항): 현재 `recomputeMenuStats`가 SELECT AVG/COUNT + UPDATE 2쿼리. 증분 전환 시 별점 수정 시 oldRating 추적 필요 + row-level 락 정합성 위험. ROI 비대칭으로 보류
+
 ---
 
 ## Known Issues / TODO (v2에서 이월)

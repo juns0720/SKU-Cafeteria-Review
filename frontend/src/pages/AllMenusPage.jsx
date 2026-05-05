@@ -7,6 +7,7 @@ import Empty from '../components/coral/Empty'
 import Icon from '../components/coral/Icon'
 import MedalDot from '../components/coral/MedalDot'
 import Thumb from '../components/coral/Thumb'
+import { MENU_STALE_TIME } from '../lib/queryTimes'
 
 const SORT_OPTIONS = [
   { key: 'rating',      label: '별점 높은순' },
@@ -25,7 +26,6 @@ function filterByQuery(menus, query) {
 }
 
 function SortDropdown({ value, onChange }) {
-  const current = SORT_OPTIONS.find((o) => o.key === value) ?? SORT_OPTIONS[0]
   return (
     <div className="relative inline-flex items-center">
       <select
@@ -121,10 +121,14 @@ export default function AllMenusPage() {
   const { data: menus = [], isLoading, isError } = useQuery({
     queryKey: ['menus', 'all', { corner: selectedCorner ?? 'ALL', sort, scope: 'all' }],
     queryFn: () => getAllMenus({ corner: selectedCorner, sort, scope: 'all' }),
+    staleTime: MENU_STALE_TIME,
+    refetchOnWindowFocus: false,
   })
   const { data: cornersData = [] } = useQuery({
     queryKey: ['menus', 'corners'],
     queryFn: getCorners,
+    staleTime: MENU_STALE_TIME,
+    refetchOnWindowFocus: false,
   })
 
   const cornerList = ['전체', ...cornersData]

@@ -9,6 +9,7 @@ import Icon from '../components/coral/Icon'
 import MultiStarInput from '../components/coral/MultiStarInput'
 import Thumb from '../components/coral/Thumb'
 import useToast from '../hooks/useToast.jsx'
+import { MENU_STALE_TIME, USER_STALE_TIME } from '../lib/queryTimes'
 
 const EMPTY_FORM = { taste: 0, amount: 0, value: 0, comment: '' }
 const MAX_PHOTOS = 3
@@ -105,6 +106,8 @@ export default function ReviewWritePage() {
     queryKey: ['menus', menuId],
     queryFn: () => getMenuById(menuId),
     enabled: isValidId,
+    staleTime: MENU_STALE_TIME,
+    refetchOnWindowFocus: false,
   })
 
   const {
@@ -115,21 +118,27 @@ export default function ReviewWritePage() {
     queryKey: ['reviews', 'me'],
     queryFn: getMyReviews,
     enabled: isValidId,
+    staleTime: USER_STALE_TIME,
   })
 
   const existingReview = myReviews.find((r) => r.menuId === menuId)
   const isEditMode = Boolean(existingReview)
 
   useEffect(() => {
-    if (!existingReview) return
-    setForm({
-      taste: existingReview.taste ?? 0,
-      amount: existingReview.amount ?? 0,
-      value: existingReview.value ?? 0,
-      comment: existingReview.comment ?? '',
-    })
-    setExistingUrls(existingReview.photoUrls ?? [])
-  }, [existingReview?.id])
+    if (!existingReview) return undefined
+
+    const timer = window.setTimeout(() => {
+      setForm({
+        taste: existingReview.taste ?? 0,
+        amount: existingReview.amount ?? 0,
+        value: existingReview.value ?? 0,
+        comment: existingReview.comment ?? '',
+      })
+      setExistingUrls(existingReview.photoUrls ?? [])
+    }, 0)
+
+    return () => window.clearTimeout(timer)
+  }, [existingReview])
 
   // ObjectURL 정리
   useEffect(() => {
@@ -184,6 +193,7 @@ export default function ReviewWritePage() {
       isEditMode
         ? updateReview(existingReview.id, payload)
         : createReview(menuId, payload),
+    retry: 0,
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['menus'] }),
