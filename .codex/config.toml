@@ -3,7 +3,7 @@ model = "gpt-5.5"
 [profiles.dev-auto]
 model = "gpt-5.5"
 model_reasoning_effort = "high"
-sandbox_mode = "workspace-write"
+sandbox_mode = "danger-full-access"
 approval_policy = "never"
 
 [profiles.dev-auto.sandbox_workspace_write]
@@ -14,3 +14,7 @@ model = "gpt-5.5"
 model_reasoning_effort = "high"
 sandbox_mode = "read-only"
 approval_policy = "on-request"
+
+[shell_environment_policy]
+inherit = "all"
+set = { LANG = "C.UTF-8", LC_ALL = "C.UTF-8", LC_CTYPE = "C.UTF-8", PYTHONUTF8 = "1", PYTHONIOENCODING = "utf-8" }
