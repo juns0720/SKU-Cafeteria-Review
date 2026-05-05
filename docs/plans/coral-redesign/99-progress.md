@@ -1,7 +1,7 @@
 /re# 진행 상황 (Coral Redesign)
 
 > **역할**: 모든 v3 단위의 체크박스 단일 소스. 완료 즉시 여기만 갱신.
-> **실행 명세**: 각 단위 상세는 `01-phase-1-foundation.md` … `06-phase-d-photo.md`.
+> **실행 명세**: 각 단위 상세는 `01-phase-1-foundation.md` … `06-phase-d-photo.md` / `05-phase-e-performance.md`.
 > **이전 플랜**: v2 진행 상태 + v1→v2 매핑은 [`../archive/ui-ux-redesign-v2/99-progress.md`](../archive/ui-ux-redesign-v2/99-progress.md)에 보존.
 
 ---
@@ -69,9 +69,24 @@
 
 ## Phase E — 버그 수정 · 성능 · PWA
 
+실행 명세: [`05-phase-e-performance.md`](./05-phase-e-performance.md)
+
+### E-1 버그 수정
 - [ ] **BUG-T1**: 닉네임 쿨다운 UX 개선 — `ProfilePage`에서 `nicknameChangedAt` 기반 잠금 + "N일 후 변경 가능" 표시. `NicknameSetupModal` `nextChangeAt` 문구 추가. BE 로직은 정상.
-- [ ] **PERF-T1**: GitHub Actions keep-alive — `.github/workflows/keep-alive.yml` 생성. 평일 07:00–21:00 KST 매 13분 `/api/v1/health` 핑 (Render cold start 방지).
-- [ ] **PERF-T2**: FE 로딩 UX 개선 — `client.js` timeout 30s / React Query `retry:2` + `gcTime` 명시 / 5초 이상 로딩 시 "서버 연결 중…" 메시지 / Vite `manualChunks` 코드 스플리팅.
+
+### E-2 DB 성능 최적화
+- [ ] **DB-T1**: Flyway V17 — `reviews.menu_id` 인덱스 추가 (풀 스캔 방지)
+- [ ] **DB-T2**: `getReviews()` N+1 제거 — `ReviewRepository`에 `JOIN FETCH r.user` @Query 추가
+- [ ] **DB-T3**: `recomputeMenuStats()` 최적화 — `MenuRepository`에 @Modifying UPDATE 추가, `findById` 제거
+- [ ] **DB-T4**: HikariCP 커넥션 풀 설정 + `RestTemplate` timeout 설정
+
+### E-3 프론트엔드 성능
+- [x] **PERF-T1**: GitHub Actions keep-alive — 이미 cron job으로 완료
+- [ ] **FE-T1**: `client.js` timeout 30s + React Query `retry:2` / `gcTime` 명시 설정
+- [ ] **FE-T2**: Vite `manualChunks` vendor 분리 + `React.lazy` 라우트 분할
+- [ ] **FE-T3**: `index.html` preconnect 힌트 추가 (Pretendard CDN)
+
+### E-4 PWA
 - [ ] **PWA-T1**: PWA 설정 — `vite-plugin-pwa` 설치 + manifest(이름: 성결 학식, 테마: #FF6B5C) + 아이콘(192/512 PNG) + Service Worker(정적 에셋 Cache First, API Network Only).
 
 ---
