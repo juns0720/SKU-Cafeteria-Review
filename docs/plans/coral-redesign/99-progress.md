@@ -107,7 +107,7 @@
 
 상세 설계: `~/.claude/plans/perform-md-robust-wadler.md` (perform.md 기반 후속 분석·우선순위·단위 명세)
 
-- [ ] **PERF-R14**: 운영 URL 검증 · stale 참조 정리 — Vercel `VITE_API_BASE_URL` 확인 + `CLAUDE.md` Project Overview · `frontend/vite.config.js` PWA urlPattern을 `sku-cafeteria-n.onrender.com`으로 교체. 브라우저 Network 탭으로 실제 호출 도메인 검증
+- [x] **PERF-R14**: 운영 URL 검증 · stale 참조 정리 — Vercel `VITE_API_BASE_URL` 확인 + `CLAUDE.md` Project Overview · `frontend/vite.config.js` PWA urlPattern을 `sku-cafeteria-n.onrender.com`으로 교체. 브라우저 Network 탭으로 실제 호출 도메인 검증
 - [ ] **PERF-R10**: `/api/warmup` 엔드포인트 추가 — `WarmupController`(common) 신설. `select 1` + `getTodayMenus(LUNCH)` + `getBestOfWeek()` + 최근 리뷰 10건. 단계별 try/catch로 fail-soft, 응답에 `elapsedMs` 포함. `SecurityConfig`에 `permitAll`
 - [ ] **PERF-R11**: `.github/workflows/keep-alive.yml` 갱신 — `BACKEND_URL` 기본값 `sku-cafeteria-n.onrender.com`으로 교정 + `/api/warmup` 호출 추가(`/api/ping-db`는 유지). 둘 다 `curl -fsS -m 30 || true`
 - [ ] **PERF-R15**: 검증 명령어 문서화 — `05-phase-e-performance.md`에 E-6 섹션 추가. curl 상세 시간 측정(PowerShell 변형 포함) · `X-Response-Time` 헤더 확인 · before/after 표 양식
